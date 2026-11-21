@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lorong Senja — Game Stealth</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <canvas id="game" width="1280" height="720"></canvas>
+
+    <div id="hud">
+      <div class="hud-left">
+        <span id="hud-level">Lorong Senja</span>
+        <span id="hud-docs">Dokumen 0/0</span>
+        <span id="hud-time">0:00</span>
+        <span id="hud-score">Skor 0</span>
+      </div>
+      <div class="hud-right">
+        <span id="hud-light"></span>
+        <span id="hud-sneak"></span>
+        <div class="meter">
+          <div id="hud-meter-fill" class="meter-fill"></div>
+        </div>
+        <span id="hud-meter-label">Terdeteksi 0%</span>
+      </div>
+    </div>
+    <div id="hud-exit"></div>
+
+    <div id="title-screen" class="overlay">
+      <h1>LORONG SENJA</h1>
+      <p class="tagline">Raka, kurir pasar malam, harus mengambil dokumen rahasia<br>
+      dan lolos dari gudang tanpa terlihat satu pun penjaga.</p>
+      <div class="menu-buttons">
+        <button id="btn-play">▶ Mulai Bermain</button>
+        <button id="btn-levels">Pilih Level</button>
+        <button id="btn-howto">Cara Bermain</button>
+      </div>
+      <p class="hint">WASD / Panah bergerak &nbsp;·&nbsp; Shift menyelinap &nbsp;·&nbsp; Klik lempar pengalih<br>
+      R restart &nbsp;·&nbsp; P jeda &nbsp;·&nbsp; M suara &nbsp;·&nbsp; Esc menu</p>
+    </div>
+
+    <div id="howto-screen" class="overlay hidden">
+      <h2>Cara Bermain</h2>
+      <div class="howto-body">
+        <p><b>Tujuan:</b> ambil semua dokumen, lalu capai pintu <b>EXIT</b> yang terbuka.</p>
+        <p><b>Gerak:</b> WASD / tombol panah. Tahan <b>Shift</b> untuk menyelinap — pelan tapi sunyi.</p>
+        <p><b>Pengalih:</b> klik mouse untuk melempar koin — penjaga akan mendatangi suara itu.</p>
+        <p><b>Penglihatan penjaga:</b> kerucut kuning. Oranye = curiga, merah = mengejar!</p>
+        <p><b>Cahaya:</b> di bawah lampion kamu mudah terlihat (deteksi naik cepat). Di tempat gelap kamu lebih aman — tapi tetap jangan masuk kerucut pandang.</p>
+        <p><b>Suara:</b> berjalan biasa terdengar penjaga di dekatmu. Menyelinaplah di dekat mereka.</p>
+        <p><b>Tertangkap</b> bila penjaga menyentuhmu saat mengejar. Putus garis pandang dan bersembunyi di balik peti/kios agar meter deteksi turun.</p>
+        <p><b>R</b> restart level &nbsp;·&nbsp; <b>P</b> jeda &nbsp;·&nbsp; <b>M</b> suara &nbsp;·&nbsp; <b>Esc</b> menu</p>
+      </div>
+      <div class="menu-buttons">
+        <button id="btn-howto-back">Kembali</button>
+      </div>
+    </div>
+
+    <div id="levels-screen" class="overlay hidden">
+      <h2>Pilih Level</h2>
+      <div class="menu-buttons column">
+        <button data-level="0">Level 1 — Gudang Senja (3 penjaga)</button>
+        <button data-level="1">Level 2 — Lorong Lampion (5 penjaga + kamera)</button>
+        <button data-level="2">Level 3 — Pasar Tengah Malam (7 penjaga)</button>
+      </div>
+      <div class="menu-buttons">
+        <button id="btn-levels-back">Kembali</button>
+      </div>
+    </div>
+
+    <div id="pause-screen" class="overlay hidden">
+      <h2>Jeda</h2>
+      <div class="menu-buttons column">
+        <button id="btn-resume">Lanjutkan (P)</button>
+        <button id="btn-restart-pause">Ulangi Level (R)</button>
+        <button id="btn-quit-pause">Menu Utama (Esc)</button>
+      </div>
+    </div>
+
+    <div id="win-screen" class="overlay hidden">
+      <h2 class="win-title">LOLOS! 🎉</h2>
+      <p>Raka berhasil membawa dokumen keluar dari <span id="win-level-name"></span>.</p>
+      <div class="stats">
+        <p>Waktu: <b id="win-time">0:00</b></p>
+        <p>Dokumen: <b id="win-docs">0/0</b></p>
+        <p>Bonus waktu: <b id="win-bonus">+0</b></p>
+        <p>Skor akhir: <b id="win-score">0</b></p>
+      </div>
+      <div class="menu-buttons">
+        <button id="btn-next-level">Level Berikutnya</button>
+        <button id="btn-replay-win">Ulangi Level</button>
+        <button id="btn-menu-win">Menu Utama</button>
+      </div>
+    </div>
+
+    <div id="lose-screen" class="overlay hidden">
+      <h2 class="lose-title">KETAHUAN!</h2>
+      <p id="lose-reason">Raka tertangkap penjaga gudang!</p>
+      <p>Level: <span id="lose-level-name"></span> &nbsp;·&nbsp; Dokumen: <span id="lose-docs"></span></p>
+      <p class="hint">Tip: menyelinaplah (Shift) di dekat penjaga, gunakan peti sebagai cover,<br>
+      dan lempar koin (klik) untuk mengalihkan perhatian mereka.</p>
+      <div class="menu-buttons">
+        <button id="btn-retry-lose">Coba Lagi (R)</button>
+        <button id="btn-menu-lose">Menu Utama</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
