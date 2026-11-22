@@ -1,10 +1,16 @@
 // Lorong Senja — input.js
 // Keyboard + mouse. Tidak ada dependensi eksternal.
+//
+// Skema gerak: WASD/panah = Walk (sunyi); tahan Shift = Run (cepat + bersuara);
+// tahan C = Crouch (pelan, hitbox kecil, deteksi setengah). E = interaksi
+// (lemari / sakelar lampu), F = takedown — keduanya edge-triggered.
 
 export class Input {
   constructor(canvas) {
     this.keys = new Set();
     this.clickQueue = []; // { x, y } dalam koordinat canvas logis
+    this.interactQueue = []; // tekan E (sekali per keydown)
+    this.takedownQueue = []; // tekan F (sekali per keydown)
     this.onPause = null;
     this.onRestart = null;
     this.onMute = null;
@@ -21,6 +27,8 @@ export class Input {
         if (k === 'r' && this.onRestart) this.onRestart();
         if (k === 'm' && this.onMute) this.onMute();
         if (k === 'escape' && this.onEscape) this.onEscape();
+        if (k === 'e') this.interactQueue.push(true);
+        if (k === 'f') this.takedownQueue.push(true);
       }
       this.keys.add(k);
       if (this.onAnyKey) this.onAnyKey(k);
@@ -54,8 +62,21 @@ export class Input {
     return { x, y };
   }
 
-  get sneaking() {
+  get running() {
     return this.keys.has('shift');
+  }
+
+  get crouching() {
+    return this.keys.has('c');
+  }
+
+  // true sekali per tekan E / F (konsumsi antrean).
+  takeInteract() {
+    return this.interactQueue.shift() === true;
+  }
+
+  takeTakedown() {
+    return this.takedownQueue.shift() === true;
   }
 
   takeClicks() {

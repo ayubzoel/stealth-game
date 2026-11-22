@@ -30,7 +30,7 @@ export function applyShot(game) {
     game.startLevel(0);
     // Raka bersembunyi tepat di balik peti (tile 3,7), di koridor baris 8.
     game.teleport(3 * 40 + 20, 8 * 40 + 20);
-    game.player.sneaking = true;
+    game.player.forceCrouch = true;
     // Guard koridor tepat di atas peti, cone-nya mengarah ke bawah dan
     // tertahan peti — Raka aman di balik cover, cone sangat dekat.
     const g = game.guards[0];

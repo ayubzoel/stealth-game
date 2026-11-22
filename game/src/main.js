@@ -41,6 +41,12 @@ class Game {
     this._fpsTime = 0;
     this._loseReason = '';
     this._winTime = 0;
+    this.checkpoint = null; // { x, y } — awal level + tiap dokumen diambil
+    this.takenDown = []; // { x, y } penanda guard yang di-takedown
+    this._takenDownIdx = new Set(); // spawnIndex guard yang sudah lumpuh
+    this.nearInteract = null; // { type: 'locker'|'locker-exit'|'switch', ... }
+    this.takedownTarget = null; // guard yang bisa di-takedown (F)
+    this._respawnTimer = 0;
 
     this.input.onPause = () => this.togglePause();
     this.input.onRestart = () => {
@@ -155,9 +161,19 @@ class Game {
     this.noiseFlashes = [];
     this.bannerText = '';
     this.bannerTimer = 0;
+    this.checkpoint = { x: def.playerSpawn.x, y: def.playerSpawn.y };
+    this.takenDown = [];
+    this._takenDownIdx = new Set();
+    this.nearInteract = null;
+    this.takedownTarget = null;
     this.phase = 'playing';
     this.hideAllOverlays();
     this.updateHUD();
+  }
+
+  // Checkpoint: posisi aman terakhir (awal level / tiap dokumen diambil).
+  setCheckpoint(x, y) {
+    this.checkpoint = { x, y };
   }
 
   giveDocuments() {
@@ -198,15 +214,38 @@ class Game {
     if (this.phase !== 'playing') return;
     this.phase = 'lost';
     this._loseReason = reason || 'tertangkap';
+    this._respawnTimer = 1.6; // tampil "Tertangkap!" sebentar lalu respawn
     this.audio.lose();
-    this.$('lose-reason').textContent =
-      this._loseReason === 'tertangkap'
-        ? 'Raka tertangkap penjaga gudang!'
-        : 'Raka ketahuan!';
+    this.$('lose-reason').textContent = 'Raka tertangkap! Kembali ke checkpoint…';
     this.$('lose-level-name').textContent = this.level.name;
     this.$('lose-docs').textContent = this.docsCollected + '/' + this.level.documents.length;
     this.hideAllOverlays();
     this.$('lose-screen').classList.remove('hidden');
+    this.updateHUD();
+  }
+
+  // Respawn di checkpoint: dokumen + skor TETAP, deteksi 0, guard patroli lagi.
+  respawnCheckpoint() {
+    const cp = this.checkpoint || {
+      x: this.level.playerSpawn.x,
+      y: this.level.playerSpawn.y,
+    };
+    this.player = new Player(cp.x, cp.y);
+    // Guard yang sudah di-takedown tidak hidup lagi.
+    this.guards = buildGuards(this.level).filter((g) => !this._takenDownIdx.has(g.spawnIndex));
+    this.cameras = buildCameras(this.level);
+    this.detection = 0;
+    this.peakDetection = 0;
+    this.nearMisses = 0;
+    this.nearMissCooldown = 0;
+    this.noiseFlashes = [];
+    this.bannerText = '';
+    this.bannerTimer = 0;
+    this.nearInteract = null;
+    this.takedownTarget = null;
+    this.phase = 'playing';
+    this.hideAllOverlays();
+    this.banner('Kembali ke checkpoint', 1.6);
     this.updateHUD();
   }
 
@@ -226,6 +265,109 @@ class Game {
   banner(text, seconds) {
     this.bannerText = text;
     this.bannerTimer = seconds;
+  }
+
+  // Interaksi (E) + takedown (F) — dihitung tiap frame dari posisi pemain.
+  updateInteractions() {
+    const p = this.player;
+    if (!p || !this.level) return;
+
+    // -- Target takedown: guard terdekat dari belakang (patrol/suspicious) --
+    this.takedownTarget = null;
+    if (!p.hiddenInLocker) {
+      let best = null;
+      let bd = 48;
+      for (const g of this.guards) {
+        if (g.state !== 'patrol' && g.state !== 'suspicious') continue;
+        const d = Math.hypot(g.x - p.x, g.y - p.y);
+        if (d >= bd) continue;
+        // Pemain harus di belakang guard (arah hadap guard menjauhi pemain).
+        const toPlayer = Math.atan2(p.y - g.y, p.x - g.x);
+        let diff = toPlayer - g.angle;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        if (Math.abs(diff) < 1.9) continue; // bukan dari belakang
+        bd = d;
+        best = g;
+      }
+      this.takedownTarget = best;
+    }
+    if (this.input.takeTakedown() && this.takedownTarget) {
+      this.doTakedown(this.takedownTarget);
+      this.takedownTarget = null;
+    }
+
+    // -- Interaksi terdekat: lemari / sakelar lampu --
+    this.nearInteract = null;
+    if (p.hiddenInLocker) {
+      this.nearInteract = { type: 'locker-exit', x: p.x, y: p.y };
+    } else {
+      let best = null;
+      let bd = 55;
+      for (const o of this.level.lockers) {
+        const d = Math.hypot(o.cx - p.x, o.cy - p.y);
+        if (d < bd) {
+          bd = d;
+          best = { type: 'locker', locker: o, x: o.cx, y: o.cy };
+        }
+      }
+      for (const s of this.level.switches) {
+        const d = Math.hypot(s.x - p.x, s.y - p.y);
+        if (d < bd) {
+          bd = d;
+          best = { type: 'switch', sw: s, x: s.x, y: s.y };
+        }
+      }
+      this.nearInteract = best;
+    }
+    if (this.input.takeInteract() && this.nearInteract) {
+      const n = this.nearInteract;
+      if (n.type === 'locker') {
+        p.lockerEntry = { x: p.x, y: p.y };
+        p.x = n.locker.cx;
+        p.y = n.locker.cy;
+        p.hiddenInLocker = true;
+        this.banner('Bersembunyi di lemari (E untuk keluar)', 1.6);
+      } else if (n.type === 'locker-exit') {
+        p.hiddenInLocker = false;
+        if (p.lockerEntry) {
+          p.x = p.lockerEntry.x;
+          p.y = p.lockerEntry.y;
+        }
+        this.banner('Keluar dari lemari', 1.2);
+      } else if (n.type === 'switch') {
+        const sw = n.sw;
+        sw.on = !sw.on;
+        if (sw.lantern) sw.lantern.on = sw.on;
+        this.banner(sw.on ? 'Lampu dinyalakan' : 'Lampu dimatikan — area jadi gelap', 1.6);
+        this.audio.clink();
+      }
+    }
+  }
+
+  // Takedown sunyi dari belakang: guard lumpuh tanpa alarm (+skor).
+  // Guard lain yang sedang melihat aksi ini jadi alert (chase).
+  doTakedown(g) {
+    this._takenDownIdx.add(g.spawnIndex);
+    this.takenDown.push({ x: g.x, y: g.y });
+    this.guards = this.guards.filter((o) => o !== g);
+    this.score += C.SCORE_TAKEDOWN;
+    this.banner('Takedown sunyi! +' + C.SCORE_TAKEDOWN, 1.8);
+    this.audio.pickup();
+    let witnessed = false;
+    for (const o of this.guards) {
+      if (o.canSee(this.level, this.player.x, this.player.y, this.player)) {
+        o.state = 'chase';
+        o.lastSeen = { x: this.player.x, y: this.player.y };
+        witnessed = true;
+      }
+    }
+    if (witnessed) {
+      this.detection = Math.max(this.detection, 85);
+      this.banner('Ketahuan! Ada yang melihat takedown!', 2);
+      this.audio.alarm();
+    }
+    this.updateHUD();
   }
 
   formatTime(s) {
@@ -252,6 +394,7 @@ class Game {
     if (this.phase === 'playing') {
       this.timeElapsed += dt;
       this.player.update(dt, this, this.input);
+      this.updateInteractions();
       for (const g of this.guards) g.update(dt, this);
       for (const cam of this.cameras) cam.update(dt, this);
 
@@ -292,6 +435,12 @@ class Game {
       this.updateHUD();
     }
 
+    // Tertangkap: tampil sebentar lalu respawn di checkpoint.
+    if (this.phase === 'lost') {
+      this._respawnTimer -= dt;
+      if (this._respawnTimer <= 0) this.respawnCheckpoint();
+    }
+
     if (this.level) this.renderer.draw(this);
   }
 
@@ -305,7 +454,17 @@ class Game {
     this.$('hud-docs').textContent = 'Dokumen ' + this.docsCollected + '/' + this.level.documents.length;
     this.$('hud-time').textContent = this.formatTime(this.timeElapsed);
     this.$('hud-score').textContent = 'Skor ' + this.score;
-    this.$('hud-sneak').textContent = this.player && this.player.sneaking ? 'MENYELINAP' : '';
+    const stance = this.$('hud-stance');
+    if (this.player && this.player.crouching) {
+      stance.textContent = 'JONGKOK';
+      stance.className = 'crouch';
+    } else if (this.player && this.player.running) {
+      stance.textContent = 'LARI';
+      stance.className = 'run';
+    } else {
+      stance.textContent = '';
+      stance.className = '';
+    }
     const meter = this.$('hud-meter-fill');
     meter.style.width = Math.round(this.detection) + '%';
     meter.className = 'meter-fill ' + (this.detection >= C.CHASE_AT ? 'danger' : this.detection >= C.SUSPICIOUS_AT ? 'warn' : '');
@@ -316,9 +475,17 @@ class Game {
       this.docsCollected >= this.level.documents.length ? 'Pintu keluar TERBUKA — lari ke EXIT!' : 'Ambil semua dokumen untuk membuka pintu keluar';
     const p = this.player;
     if (p) {
-      const light = lightAt(this.level, p.x, p.y);
-      this.$('hud-light').textContent = light > 0.55 ? 'TERANG — mudah terlihat!' : light > 0.25 ? 'Remang' : 'GELAP — aman bersembunyi';
-      this.$('hud-light').className = light > 0.55 ? 'light-warn' : '';
+      if (p.hiddenInLocker) {
+        this.$('hud-light').textContent = 'DI LEMARI — tersembunyi';
+        this.$('hud-light').className = '';
+      } else if (p.inBush) {
+        this.$('hud-light').textContent = 'SEMAK — tersembunyi';
+        this.$('hud-light').className = '';
+      } else {
+        const light = lightAt(this.level, p.x, p.y);
+        this.$('hud-light').textContent = light > 0.55 ? 'TERANG — mudah terlihat!' : light > 0.25 ? 'Remang' : 'GELAP — aman bersembunyi';
+        this.$('hud-light').className = light > 0.55 ? 'light-warn' : '';
+      }
     }
   }
 }
@@ -335,7 +502,7 @@ window.addEventListener('DOMContentLoaded', () => {
         phase: game.phase,
         level: game.levelIndex + 1,
         levelName: game.level ? game.level.name : null,
-        player: game.player ? { x: Math.round(game.player.x), y: Math.round(game.player.y), sneaking: game.player.sneaking } : null,
+        player: game.player ? { x: Math.round(game.player.x), y: Math.round(game.player.y), stance: game.player.mode, crouching: game.player.crouching, inBush: game.player.inBush, hiddenInLocker: game.player.hiddenInLocker } : null,
         guards: game.guards.map((g) => ({ x: Math.round(g.x), y: Math.round(g.y), state: g.state, seesPlayer: g.seesPlayer })),
         cameras: game.cameras.map((c) => ({ x: Math.round(c.x), y: Math.round(c.y), seesPlayer: c.seesPlayer })),
         detection: Math.round(game.detection),
@@ -343,6 +510,10 @@ window.addEventListener('DOMContentLoaded', () => {
         docsTotal: game.level ? game.level.documents.length : 0,
         score: game.score,
         nearMisses: game.nearMisses,
+        takenDown: game.takenDown.length,
+        checkpoint: game.checkpoint ? { x: Math.round(game.checkpoint.x), y: Math.round(game.checkpoint.y) } : null,
+        takedownReady: !!game.takedownTarget,
+        nearInteract: game.nearInteract ? game.nearInteract.type : null,
       };
     },
     stats() {

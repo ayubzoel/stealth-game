@@ -30,10 +30,13 @@ export class Guard {
   }
 
   // Apakah pemain terlihat oleh guard ini (cone + jarak + LOS)?
-  canSee(level, px, py) {
+  // Di lemari: tidak terlihat sama sekali. Di semak: hanya bila sangat dekat.
+  canSee(level, px, py, player) {
+    if (player && player.hiddenInLocker) return false;
     const dx = px - this.x;
     const dy = py - this.y;
     const dist = Math.hypot(dx, dy);
+    if (player && player.inBush && dist > C.BUSH_HIDE_DIST) return false;
     if (dist > C.CONE_RANGE) return false;
     const targetAngle = Math.atan2(dy, dx);
     const half = (C.CONE_HALF_ANGLE_DEG * Math.PI) / 180;
@@ -44,7 +47,7 @@ export class Guard {
   update(dt, game) {
     const level = game.level;
     const player = game.player;
-    const seen = this.canSee(level, player.x, player.y);
+    const seen = this.canSee(level, player.x, player.y, player);
     this.seesPlayer = seen;
 
     if (seen) {
@@ -53,7 +56,7 @@ export class Guard {
       const light = lightAt(level, player.x, player.y);
       let rate = C.DETECT_RATE_DARK + (C.DETECT_RATE_LIGHT - C.DETECT_RATE_DARK) * light;
       if (dist < C.CONE_CLOSE_RANGE) rate = C.DETECT_RATE_CLOSE;
-      if (player.sneaking) rate *= 0.55;
+      if (player.crouching) rate *= C.CROUCH_DETECT_MULT;
       game.detection = Math.min(100, game.detection + rate * dt);
       if (game.detection >= C.CHASE_AT && this.state !== 'chase') {
         this.state = 'chase';
@@ -166,13 +169,18 @@ export class Camera {
     const dy = player.y - this.y;
     const dist = Math.hypot(dx, dy);
     const half = (C.CAMERA_HALF_ANGLE_DEG * Math.PI) / 180;
+    // Kamera juga tidak bisa melihat pemain di lemari / di semak (kecuali dekat).
+    const hidden = player.hiddenInLocker || (player.inBush && dist > C.BUSH_HIDE_DIST);
     const seen =
+      !hidden &&
       dist < C.CAMERA_RANGE &&
       Math.abs(angleDiff(Math.atan2(dy, dx), this.angle)) < half &&
       hasLineOfSight(game.level, this.x, this.y, player.x, player.y);
     this.seesPlayer = seen;
     if (seen) {
-      game.detection = Math.min(100, game.detection + C.CAMERA_DETECT_RATE * dt);
+      let rate = C.CAMERA_DETECT_RATE;
+      if (player.crouching) rate *= C.CROUCH_DETECT_MULT;
+      game.detection = Math.min(100, game.detection + rate * dt);
       if (game.detection >= C.CHASE_AT) {
         for (const g of game.guards) {
           if (g.state === 'patrol') {
@@ -205,7 +213,9 @@ export function buildGuards(level) {
       x: tx * CONFIG.TILE + CONFIG.TILE / 2,
       y: ty * CONFIG.TILE + CONFIG.TILE / 2,
     }));
-    return new Guard(spawn.x, spawn.y, wps);
+    const g = new Guard(spawn.x, spawn.y, wps);
+    g.spawnIndex = i; // dipakai checkpoint: guard yang di-takedown tidak hidup lagi
+    return g;
   });
 }
 

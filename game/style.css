@@ -42,7 +42,9 @@ body {
 .hud-left, .hud-right { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
 .hud-right { justify-content: flex-end; }
 
-#hud-sneak { color: #2dd4bf; letter-spacing: 1px; }
+#hud-stance { letter-spacing: 1px; }
+#hud-stance.crouch { color: #2dd4bf; }
+#hud-stance.run { color: #f59e0b; }
 #hud-light { color: #94a3b8; }
 #hud-light.light-warn { color: #fbbf24; }
 

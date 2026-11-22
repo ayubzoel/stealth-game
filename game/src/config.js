@@ -11,10 +11,14 @@ export const CONFIG = {
   COLS: 32,
   ROWS: 18,
 
-  // Pemain (px/detik).
-  PLAYER_WALK_SPEED: 178,
-  PLAYER_SNEAK_SPEED: 96,
+  // Pemain (px/detik) — Walk sunyi (default), Run cepat+bersuara (Shift),
+  // Crouch pelan + hitbox kecil + deteksi setengah (C).
+  PLAYER_WALK_SPEED: 150,
+  PLAYER_RUN_SPEED: 235,
+  PLAYER_CROUCH_SPEED: 82,
   PLAYER_RADIUS: 13,
+  PLAYER_CROUCH_RADIUS: 9, // ~30% lebih kecil dari 13
+  CROUCH_DETECT_MULT: 0.5, // laju deteksi terhadap pemain jongkok
 
   // Guard (px/detik).
   GUARD_PATROL_SPEED: 72,
@@ -45,17 +49,21 @@ export const CONFIG = {
   NEAR_MISS_PEAK: 60, // meter pernah setinggi ini lalu turun -> "Hampir terlihat!"
   NEAR_MISS_CLEAR: 25,
 
-  // Suara / noise.
-  WALK_NOISE_RADIUS: 72,
-  WALK_NOISE_INTERVAL: 0.55, // detik antar pulsa suara saat jalan biasa
+  // Suara / noise — hanya lari yang bersuara (jalan & jongkok sunyi).
+  RUN_NOISE_RADIUS: 95,
+  RUN_NOISE_INTERVAL: 0.5, // detik antar pulsa suara saat lari
   THROW_RANGE: 320,
   THROW_NOISE_RADIUS: 140,
   THROW_COOLDOWN: 0.9,
 
   // Skor.
   SCORE_DOCUMENT: 250,
+  SCORE_TAKEDOWN: 150,
   SCORE_LEVEL_TIME_BONUS: 5, // per detik tersisa dari par time
   SCORE_NEAR_MISS_PENALTY: 40,
+
+  // Sembunyi di semak: guard hanya melihat bila sangat dekat (px).
+  BUSH_HIDE_DIST: 55,
 
   // Warna.
   COLORS: {

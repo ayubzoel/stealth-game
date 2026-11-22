@@ -4,6 +4,8 @@
 // Legenda peta (32 kolom x 18 baris, tile 40 px):
 //   # dinding   C peti    K kios    T tong    L lampion (lantai + cahaya)
 //   D dokumen   E pintu keluar   P spawn pemain   G spawn guard   . lantai
+//   B semak (bisa dilewati, sembunyi)   O lemari (padat, E masuk/keluar)
+//   S sakelar lampu (E: matikan/nyalakan lampion terdekat)
 
 import { CONFIG } from './config.js';
 
@@ -14,6 +16,9 @@ function parseMap(rows, waypoints, cameras) {
   const covers = []; // { x, y, w, h, kind }
   const lanterns = [];
   const documents = [];
+  const bushes = []; // { x, y, w, h, cx, cy } — bisa dilewati
+  const lockers = []; // { x, y, w, h, cx, cy } — padat
+  const switches = []; // { x, y, on, lantern } — E untuk toggle
   let exit = null;
   let playerSpawn = { x: 60, y: 60 };
   const guardSpawns = [];
@@ -27,9 +32,15 @@ function parseMap(rows, waypoints, cameras) {
       else if (ch === 'C' || ch === 'K' || ch === 'T') {
         covers.push({ x: px, y: py, w: TILE, h: TILE, kind: ch });
       } else if (ch === 'L') {
-        lanterns.push({ x: px + TILE / 2, y: py + TILE / 2 });
+        lanterns.push({ x: px + TILE / 2, y: py + TILE / 2, on: true });
       } else if (ch === 'D') {
         documents.push({ x: px + TILE / 2, y: py + TILE / 2, taken: false });
+      } else if (ch === 'B') {
+        bushes.push({ x: px, y: py, w: TILE, h: TILE, cx: px + TILE / 2, cy: py + TILE / 2 });
+      } else if (ch === 'O') {
+        lockers.push({ x: px, y: py, w: TILE, h: TILE, cx: px + TILE / 2, cy: py + TILE / 2 });
+      } else if (ch === 'S') {
+        switches.push({ x: px + TILE / 2, y: py + TILE / 2, on: true, lantern: null });
       } else if (ch === 'E') {
         exit = { x: px, y: py, w: TILE, h: TILE, cx: px + TILE / 2, cy: py + TILE / 2 };
       } else if (ch === 'P') {
@@ -40,7 +51,18 @@ function parseMap(rows, waypoints, cameras) {
     }
   });
 
-  return { walls, covers, lanterns, documents, exit, playerSpawn, guardSpawns, waypoints, cameras };
+  // Tiap sakelar mengendalikan lampion terdekat (maks 260 px).
+  for (const s of switches) {
+    let best = null;
+    let bd = 260;
+    for (const l of lanterns) {
+      const d = Math.hypot(l.x - s.x, l.y - s.y);
+      if (d < bd) { bd = d; best = l; }
+    }
+    s.lantern = best;
+  }
+
+  return { walls, covers, lanterns, documents, bushes, lockers, switches, exit, playerSpawn, guardSpawns, waypoints, cameras };
 }
 
 function isSolidTile(level, tx, ty) {
@@ -48,6 +70,17 @@ function isSolidTile(level, tx, ty) {
   if (level.walls.has(tx + ',' + ty)) return true;
   for (const c of level.covers) {
     if (tx * TILE === c.x && ty * TILE === c.y) return true;
+  }
+  for (const o of level.lockers) {
+    if (tx * TILE === o.x && ty * TILE === o.y) return true;
+  }
+  return false;
+}
+
+// Apakah titik (x,y) berada di dalam semak (tempat sembunyi)?
+export function isInBush(level, x, y) {
+  for (const b of level.bushes) {
+    if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return true;
   }
   return false;
 }
@@ -81,9 +114,11 @@ export function raycastDistance(level, ox, oy, angle, maxDist) {
 }
 
 // Tingkat cahaya 0..1 di sebuah titik (lampion hangat = terang = berbahaya).
+// Lampion yang dimatikan lewat sakelar tidak memberi cahaya.
 export function lightAt(level, x, y) {
   let light = 0.12; // cahaya ambien malam
   for (const l of level.lanterns) {
+    if (l.on === false) continue;
     const d = Math.hypot(x - l.x, y - l.y);
     if (d < 200) light = Math.max(light, 1 - d / 200);
   }
@@ -124,21 +159,21 @@ function circleHitsSolid(level, x, y, r) {
 const LEVEL_1_ROWS = [
   '################################',
   '#P....#......#........#.......D#',
-  '#.....#..C...#....C...#....C...#',
+  '#.....#..C...#....C...#....C..O#',
   '#..C..#......#........#........#',
   '#.....#...D..#....C...#........#',
   '#.....######.######.######.#####',
-  '#......L.......................#',
+  '#......LS...........B..........#',
   '#..C......C......C.......C.....#',
-  '#.........L.............G......#',
+  '#.........L.............GB.....#',
   '#######.######.######.#######..#',
   '#......#.......#......#........#',
   '#..D...#...C...#..C...#....E...#',
   '#......#.......#......#........#',
   '#..C...#.......#..C...#....C...#',
-  '#......#.......#......#........#',
+  '#......#.......#......#.......O#',
   '#...G..#...G...#......#........#',
-  '#..............................#',
+  '#....B....B.........B....B.....#',
   '################################',
 ];
 
@@ -157,21 +192,21 @@ const LEVEL_1_WAYPOINTS = [
 const LEVEL_2_ROWS = [
   '################################',
   '#P...L#......#........#......D.#',
-  '#.....#..C...#....C...#..C.....#',
+  '#.O...#..C...#....C...#..C.....#',
   '#..C..#......#........#........#',
   '#..L..#...D..#....L...#........#',
   '#.....######.######.######.#####',
-  '#..............................#',
+  '#..............S....B..........#',
   '#.C.......C......C.......C...L.#',
-  '#.......................G......#',
+  '#.......................GB.....#',
   '#######.######.######.#######..#',
   '#......#.......#......#........#',
   '#..D...#...K...#..C...#....E...#',
   '#..L...#.......#......#........#',
-  '#......#...C...#..K...#...D....#',
+  '#......#...C...#..K...#...D...O#',
   '#..C...#.......#......#........#',
   '#...G..#...G...#..G...#........#',
-  '#.......G......................#',
+  '#....B..G.B.........B....B.....#',
   '################################',
 ];
 
@@ -195,21 +230,21 @@ const LEVEL_2_WAYPOINTS = [
 const LEVEL_3_ROWS = [
   '################################',
   '#P...L#..C...#........#..C...D.#',
-  '#.....#......#....C...#........#',
+  '#.....#......#....C...#.......O#',
   '#..C..#..D...#........#....K...#',
   '#..L..#......#....L...#........#',
   '#.....######.######.######.#####',
-  '#..............................#',
+  '#..............S....B..........#',
   '#.K.....D.C......K.......C...L.#',
-  '#.......................G......#',
+  '#.......................GB.....#',
   '#######.######.######.#######..#',
   '#......#.......#......#........#',
   '#..D...#...K...#..C...#....E...#',
   '#..L...#.......#......#........#',
   '#......#...C...#..K...#...D....#',
-  '#..C...#.......#......#........#',
+  '#..C...#.......#......#.......O#',
   '#...G..#...G...#..G...#....G...#',
-  '#..G................G..........#',
+  '#..G.B....B.........GB.B.......#',
   '################################',
 ];
 

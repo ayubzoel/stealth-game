@@ -29,15 +29,20 @@ export class Renderer {
     this.drawExit(ctx, level, game);
     this.drawDocuments(ctx, level);
     this.drawCovers(ctx, level);
+    this.drawBushes(ctx, level);
+    this.drawLockers(ctx, level, game);
+    this.drawSwitches(ctx, level);
     this.drawWalls(ctx, level);
     this.drawLanterns(ctx, level);
     this.drawCones(ctx, game);
     this.drawGuards(ctx, game);
+    this.drawTakenDown(ctx, game);
     this.drawCameras(ctx, game);
     this.drawPlayer(ctx, game);
     this.drawNoise(ctx, game);
     this.drawDarkness(ctx, game);
     this.drawBanner(ctx, game);
+    this.drawPrompts(ctx, game);
   }
 
   drawFloor(ctx, level) {
@@ -103,8 +108,75 @@ export class Renderer {
     }
   }
 
+  drawBushes(ctx, level) {
+    // Semak: rumpun hijau — bisa dilewati, sembunyi di dalamnya.
+    for (const b of level.bushes) {
+      ctx.fillStyle = '#1d4d2b';
+      ctx.beginPath();
+      ctx.arc(b.cx - 8, b.cy + 4, 12, 0, Math.PI * 2);
+      ctx.arc(b.cx + 8, b.cy + 4, 12, 0, Math.PI * 2);
+      ctx.arc(b.cx, b.cy - 8, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#2f7a44';
+      ctx.beginPath();
+      ctx.arc(b.cx - 8, b.cy + 2, 7, 0, Math.PI * 2);
+      ctx.arc(b.cx + 8, b.cy + 2, 7, 0, Math.PI * 2);
+      ctx.arc(b.cx, b.cy - 8, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#4caf6d';
+      ctx.beginPath();
+      ctx.arc(b.cx - 4, b.cy - 4, 3, 0, Math.PI * 2);
+      ctx.arc(b.cx + 6, b.cy + 6, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  drawLockers(ctx, level, game) {
+    // Lemari: kabinet tinggi — E di dekatnya untuk masuk/keluar.
+    for (const o of level.lockers) {
+      const occupied = game.player && game.player.hiddenInLocker &&
+        Math.hypot(game.player.x - o.cx, game.player.y - o.cy) < 5;
+      ctx.fillStyle = occupied ? '#3f4a63' : '#2e3a52';
+      ctx.fillRect(o.x + 4, o.y + 2, o.w - 8, o.h - 4);
+      ctx.strokeStyle = occupied ? '#2dd4bf' : '#64748b';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(o.x + 4, o.y + 2, o.w - 8, o.h - 4);
+      ctx.strokeStyle = '#475569';
+      ctx.beginPath();
+      ctx.moveTo(o.cx, o.y + 2);
+      ctx.lineTo(o.cx, o.y + o.h - 2);
+      ctx.stroke();
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(o.cx - 5, o.cy - 2, 3, 4);
+      ctx.fillRect(o.cx + 2, o.cy - 2, 3, 4);
+    }
+  }
+
+  drawSwitches(ctx, level) {
+    // Sakelar lampu di lantai: kotak kecil + lampu status.
+    for (const s of level.switches) {
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(s.x - 8, s.y - 8, 16, 16);
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(s.x - 8, s.y - 8, 16, 16);
+      ctx.fillStyle = s.on ? '#fbbf24' : '#475569';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
   drawLanterns(ctx, level) {
     for (const l of level.lanterns) {
+      if (l.on === false) {
+        // Lampion mati: badan redup, tanpa cahaya.
+        ctx.fillStyle = '#5b3a3a';
+        ctx.beginPath();
+        ctx.ellipse(l.x, l.y, 9, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+        continue;
+      }
       const flicker = 0.85 + Math.sin(this.time * 3 + l.x) * 0.15;
       const grad = ctx.createRadialGradient(l.x, l.y, 4, l.x, l.y, 90 * flicker);
       grad.addColorStop(0, 'rgba(255, 200, 110, 0.85)');
@@ -224,16 +296,38 @@ export class Renderer {
     }
   }
 
+  drawTakenDown(ctx, game) {
+    // Guard yang di-takedown: penanda kecil di lantai.
+    for (const t of game.takenDown) {
+      ctx.fillStyle = '#3f3f46';
+      ctx.beginPath();
+      ctx.ellipse(t.x, t.y, 12, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#52525b';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = '#a1a1aa';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('z z', t.x, t.y - 10);
+    }
+  }
+
   drawPlayer(ctx, game) {
     const p = game.player;
+    // Di dalam lemari: pemain tidak digambar (tersembunyi).
+    if (p.hiddenInLocker) return;
+    const r = p.radius;
     // Bayangan samar di bawah pemain.
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath();
     ctx.ellipse(p.x, p.y + 8, 12, 5, 0, 0, Math.PI * 2);
     ctx.fill();
+    // Di semak: pemain samar (tersembunyi).
+    ctx.globalAlpha = p.inBush ? 0.55 : 1;
     ctx.fillStyle = C.COLORS.player;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, C.PLAYER_RADIUS, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = C.COLORS.playerDark;
     ctx.lineWidth = 2;
@@ -243,12 +337,13 @@ export class Renderer {
     ctx.beginPath();
     ctx.arc(p.x + Math.cos(p.angle) * 7, p.y + Math.sin(p.angle) * 7, 5, 0, Math.PI * 2);
     ctx.fill();
-    // Indikator menyelinap: cincin putus-putus.
-    if (p.sneaking) {
+    ctx.globalAlpha = 1;
+    // Indikator jongkok: cincin putus-putus.
+    if (p.crouching) {
       ctx.strokeStyle = 'rgba(45, 212, 191, 0.8)';
       ctx.setLineDash([4, 4]);
       ctx.beginPath();
-      ctx.arc(p.x, p.y, C.PLAYER_RADIUS + 6, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, r + 6, 0, Math.PI * 2);
       ctx.stroke();
       ctx.setLineDash([]);
     }
@@ -289,8 +384,9 @@ export class Renderer {
     dctx.fillStyle = C.COLORS.darkness;
     dctx.fillRect(0, 0, C.CANVAS_W, C.CANVAS_H);
     dctx.globalCompositeOperation = 'destination-out';
-    // Lubang cahaya di tiap lampion.
+    // Lubang cahaya di tiap lampion yang menyala.
     for (const l of game.level.lanterns) {
+      if (l.on === false) continue;
       const grad = dctx.createRadialGradient(l.x, l.y, 10, l.x, l.y, 170);
       grad.addColorStop(0, 'rgba(0,0,0,0.95)');
       grad.addColorStop(0.6, 'rgba(0,0,0,0.55)');
@@ -333,5 +429,27 @@ export class Renderer {
     ctx.font = 'bold 20px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(game.bannerText, 640, 117);
+  }
+
+  drawPrompts(ctx, game) {
+    // Petunjuk konteks: E interaksi / F takedown.
+    ctx.textAlign = 'center';
+    if (game.takedownTarget) {
+      const g = game.takedownTarget;
+      ctx.fillStyle = '#fde68a';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.fillText('F — Takedown sunyi!', g.x, g.y - 26);
+    } else if (game.nearInteract) {
+      const n = game.nearInteract;
+      let text = '';
+      if (n.type === 'locker') text = 'E — Sembunyi di lemari';
+      else if (n.type === 'locker-exit') text = 'E — Keluar dari lemari';
+      else if (n.type === 'switch') text = n.sw.on ? 'E — Matikan lampu' : 'E — Nyalakan lampu';
+      if (text) {
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillText(text, n.x, n.y - 26);
+      }
+    }
   }
 }

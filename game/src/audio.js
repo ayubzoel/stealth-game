@@ -68,9 +68,9 @@ export class AudioEngine {
     src.start(t0);
   }
 
-  step(sneaking) {
-    // Langkah kaki: bunyi pelan; menyelinap nyaris tak terdengar.
-    this._noise(0.07, sneaking ? 0.03 : 0.09, 500);
+  step(quiet) {
+    // Langkah kaki: bunyi pelan; jongkok nyaris tak terdengar.
+    this._noise(0.07, quiet ? 0.03 : 0.09, 500);
   }
 
   suspicious() {
