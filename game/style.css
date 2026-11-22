@@ -238,3 +238,89 @@ body {
 .touch-on #btn-touch-pause { display: block; }
 /* HUD memberi ruang untuk tombol pause di pojok kanan atas. */
 .touch-on #hud { padding-right: 88px; }
+
+/* Bar hint putar HP (hanya portrait sentuh, diatur JS + sessionStorage). */
+#rotate-hint { display: none; }
+#rotate-hint:not(.hidden) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  background: #1e293b;
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fde68a;
+}
+#btn-rotate-dismiss {
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  color: #f1f5f9;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+/* Overlay bisa di-scroll bila konten melebihi layar; judul mengecil. */
+.overlay { overflow-y: auto; }
+.overlay h1 { font-size: clamp(32px, 8vw, 64px); }
+.overlay h2 { font-size: clamp(26px, 6vw, 40px); }
+.touch-on .menu-buttons button { min-height: 48px; }
+
+/* -- Portrait sentuh (lebar < 640 px): stage 16:9 di atas, deck di bawah --- */
+@media (max-width: 639px) and (orientation: portrait) {
+  body { align-items: flex-start; }
+  #wrap { padding: 0; }
+  #stage { border-radius: 0; border-left: none; border-right: none; }
+  .touch-on #touch-deck {
+    min-height: 300px;
+    border-radius: 0;
+    padding: 16px;
+  }
+  /* HUD 2 baris ringkas: baris 1 = level/dokumen/waktu/skor,
+     baris 2 = cahaya/stance/meter/%. */
+  #hud {
+    flex-wrap: wrap;
+    gap: 4px 6px;
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  .hud-left, .hud-right { flex: 1 1 100%; gap: 6px; }
+  .hud-right { justify-content: flex-start; }
+  .meter { width: 100px; }
+  .touch-on #hud-fps { display: none; }
+  #hud-exit { font-size: 11px; bottom: 4px; padding: 0 8px; }
+  .overlay { padding: 16px; gap: 12px; }
+  .tagline { font-size: 14px; }
+  .hint { font-size: 12px; }
+  .howto-body { font-size: 13px; }
+  .menu-buttons button { font-size: 15px; padding: 12px 18px; }
+}
+
+/* -- Landscape sentuh (tinggi < 500 px): kontrol overlay sudut bawah ------- */
+@media (orientation: landscape) and (max-height: 499px) {
+  #wrap { position: relative; }
+  .touch-on #touch-deck {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 8px;
+    min-height: 0;
+    background: transparent;
+    border: none;
+    padding: 8px 12px;
+    pointer-events: none;
+  }
+  .touch-on #touch-deck > * { pointer-events: auto; }
+  .touch-on #joy-base { width: 96px; height: 96px; }
+  .touch-on #joy-knob { width: 48px; height: 48px; margin: -24px 0 0 -24px; }
+  .touch-on #touch-buttons { grid-template-columns: repeat(2, 56px); gap: 8px; }
+  .touch-on .touch-btn { width: 56px; height: 56px; font-size: 11px; }
+  .touch-on #hud-fps { display: none; }
+}

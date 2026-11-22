@@ -8,6 +8,42 @@ import { t } from './i18n.js';
 const C = CONFIG;
 const TILE = C.TILE;
 
+// Kamera: desktop/landscape = seluruh dunia (zoom 1). Bila viewport CSS
+// < 640 px DAN portrait, zoom 1.6 mengikuti pemain (view 800x450 px dunia,
+// dijepit agar tidak keluar dari dunia 1280x720). Dipakai juga oleh
+// input.js untuk memetakan klik mouse ke koordinat dunia.
+export function cameraFor(player) {
+  const portrait =
+    window.innerWidth < 640 && window.innerHeight > window.innerWidth;
+  if (!portrait || !player) {
+    return { zoom: 1, cx: C.CANVAS_W / 2, cy: C.CANVAS_H / 2 };
+  }
+  const zoom = 1.6;
+  const vw = C.CANVAS_W / zoom; // 800
+  const vh = C.CANVAS_H / zoom; // 450
+  const cx = Math.max(vw / 2, Math.min(C.CANVAS_W - vw / 2, player.x));
+  const cy = Math.max(vh / 2, Math.min(C.CANVAS_H - vh / 2, player.y));
+  return { zoom, cx, cy };
+}
+
+// Koordinat logis canvas (1280x720) -> koordinat dunia (dengan zoom kamera).
+export function screenToWorld(lx, ly, player) {
+  const cam = cameraFor(player);
+  return {
+    x: cam.cx + (lx - C.CANVAS_W / 2) / cam.zoom,
+    y: cam.cy + (ly - C.CANVAS_H / 2) / cam.zoom,
+  };
+}
+
+// Koordinat dunia -> koordinat logis layar (kebalikan screenToWorld).
+export function worldToScreen(wx, wy, player) {
+  const cam = cameraFor(player);
+  return {
+    x: (wx - cam.cx) * cam.zoom + C.CANVAS_W / 2,
+    y: (wy - cam.cy) * cam.zoom + C.CANVAS_H / 2,
+  };
+}
+
 export class Renderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -26,6 +62,15 @@ export class Renderer {
     this.time += 1 / 60;
     ctx.clearRect(0, 0, C.CANVAS_W, C.CANVAS_H);
 
+    // Dunia digambar dengan transform kamera (zoom portrait); elemen
+    // screen-space (banner, prompt) digambar setelah transform di-reset.
+    const cam = cameraFor(game.player);
+    ctx.save();
+    if (cam.zoom !== 1) {
+      ctx.translate(C.CANVAS_W / 2, C.CANVAS_H / 2);
+      ctx.scale(cam.zoom, cam.zoom);
+      ctx.translate(-cam.cx, -cam.cy);
+    }
     this.drawFloor(ctx, level);
     this.drawExit(ctx, level, game);
     this.drawDocuments(ctx, level);
@@ -42,6 +87,7 @@ export class Renderer {
     this.drawPlayer(ctx, game);
     this.drawNoise(ctx, game);
     this.drawDarkness(ctx, game);
+    ctx.restore();
     this.drawBanner(ctx, game);
     this.drawPrompts(ctx, game);
   }
@@ -434,13 +480,16 @@ export class Renderer {
   }
 
   drawPrompts(ctx, game) {
-    // Petunjuk konteks: E interaksi / F takedown.
+    // Petunjuk konteks: E interaksi / F takedown. Digambar dalam koordinat
+    // layar (teks tidak ikut zoom), tapi posisinya dikonversi dari dunia
+    // agar tetap menempel ke guard / titik interaksi.
     ctx.textAlign = 'center';
     if (game.takedownTarget) {
       const g = game.takedownTarget;
+      const s = worldToScreen(g.x, g.y - 26, game.player);
       ctx.fillStyle = '#fde68a';
       ctx.font = 'bold 13px sans-serif';
-      ctx.fillText(t('canvas.takedownPrompt'), g.x, g.y - 26);
+      ctx.fillText(t('canvas.takedownPrompt'), s.x, s.y);
     } else if (game.nearInteract) {
       const n = game.nearInteract;
       let text = '';
@@ -448,9 +497,10 @@ export class Renderer {
       else if (n.type === 'locker-exit') text = t('canvas.lockerExitPrompt');
       else if (n.type === 'switch') text = n.sw.on ? t('canvas.switchOff') : t('canvas.switchOn');
       if (text) {
+        const s = worldToScreen(n.x, n.y - 26, game.player);
         ctx.fillStyle = '#e2e8f0';
         ctx.font = 'bold 13px sans-serif';
-        ctx.fillText(text, n.x, n.y - 26);
+        ctx.fillText(text, s.x, s.y);
       }
     }
   }

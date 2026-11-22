@@ -21,6 +21,7 @@ class Game {
     this.renderer = new Renderer(this.canvas);
     this.audio = new AudioEngine();
     this.input = new Input(this.canvas);
+    this.input.playerGetter = () => this.player;
     // Kontrol sentuh hanya dibuat di perangkat sentuh (atau ?touch=1);
     // desktop tanpa sentuh tidak mendapat elemen sentuh sama sekali.
     this.touchControls = null;
@@ -75,9 +76,38 @@ class Game {
 
     this.bindMenuButtons();
     this.applyLanguage();
+    this.initRotateHint();
     this.showTitle();
     this.updateHUD();
     requestAnimationFrame((t) => this.loop(t));
+  }
+
+  // -- hint putar HP ----------------------------------------------------------
+  // Hanya di portrait sentuh, sekali per sesi (sessionStorage).
+  initRotateHint() {
+    const hint = this.$('rotate-hint');
+    if (!hint) return;
+    let dismissed = false;
+    try {
+      dismissed = sessionStorage.getItem('lorong-senja-rotate') === '1';
+    } catch (e) { /* abaikan */ }
+    const show = () => {
+      const portraitTouch =
+        !!this.touchControls &&
+        window.innerWidth < 640 &&
+        window.innerHeight > window.innerWidth;
+      hint.classList.toggle('hidden', !portraitTouch || dismissed);
+    };
+    this.$('btn-rotate-dismiss').addEventListener('click', () => {
+      dismissed = true;
+      hint.classList.add('hidden');
+      try {
+        sessionStorage.setItem('lorong-senja-rotate', '1');
+      } catch (e) { /* abaikan */ }
+    });
+    window.addEventListener('resize', show);
+    window.addEventListener('orientationchange', show);
+    show();
   }
 
   // -- bahasa ---------------------------------------------------------------

@@ -5,6 +5,8 @@
 // tahan C = Crouch (pelan, hitbox kecil, deteksi setengah). E = interaksi
 // (lemari / sakelar lampu), F = takedown — keduanya edge-triggered.
 
+import { screenToWorld } from './render.js';
+
 export class Input {
   constructor(canvas) {
     this.keys = new Set();
@@ -14,6 +16,7 @@ export class Input {
     this.joystick = null; // { x, y } vektor joystick sentuh (null = tidak aktif)
     this.touchRun = false; // tombol LARI sentuh ditahan
     this.touchCrouch = false; // toggle JONGKOK sentuh
+    this.playerGetter = null; // () => player — untuk pemetaan klik saat zoom
     this.onPause = null;
     this.onRestart = null;
     this.onMute = null;
@@ -43,9 +46,11 @@ export class Input {
 
     canvas.addEventListener('mousedown', (e) => {
       const rect = canvas.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 1280;
-      const y = ((e.clientY - rect.top) / rect.height) * 720;
-      this.clickQueue.push({ x, y });
+      const lx = ((e.clientX - rect.left) / rect.width) * 1280;
+      const ly = ((e.clientY - rect.top) / rect.height) * 720;
+      // Petakan ke koordinat dunia (memperhitungkan zoom kamera portrait).
+      const p = this.playerGetter ? this.playerGetter() : null;
+      this.clickQueue.push(screenToWorld(lx, ly, p));
     });
   }
 

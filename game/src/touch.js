@@ -7,7 +7,6 @@
 
 import { t } from './i18n.js';
 
-const JOY_TRAVEL = 32; // px gerak maksimum knob dari tengah
 const JOY_DEADZONE = 0.15;
 const THROW_DIST = 220; // px ke arah hadap pemain (sama seperti klik mouse)
 
@@ -79,8 +78,10 @@ export class TouchControls {
     const rect = this._joyBase.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    let dx = (e.clientX - cx) / JOY_TRAVEL;
-    let dy = (e.clientY - cy) / JOY_TRAVEL;
+    // Jarak maksimum knob = setengah lebar base dikurangi setengah knob.
+    const travel = Math.max(20, rect.width / 2 - 28);
+    let dx = (e.clientX - cx) / travel;
+    let dy = (e.clientY - cy) / travel;
     const mag = Math.hypot(dx, dy);
     if (mag > 1) {
       dx /= mag;
@@ -88,7 +89,7 @@ export class TouchControls {
     }
     if (this._joyKnob) {
       this._joyKnob.style.transform =
-        'translate(' + dx * JOY_TRAVEL + 'px,' + dy * JOY_TRAVEL + 'px)';
+        'translate(' + dx * travel + 'px,' + dy * travel + 'px)';
     }
     // Deadzone: sentuhan kecil di tengah = diam.
     if (mag < JOY_DEADZONE) {
