@@ -10,6 +10,21 @@ import { t } from './i18n.js';
 const JOY_DEADZONE = 0.15;
 const THROW_DIST = 220; // px ke arah hadap pemain (sama seperti klik mouse)
 
+// Kunci i18n label tombol AKSI sesuai interaksi terdekat — satu sumber
+// kebenaran, dipakai TouchControls DAN render.js (prompt sentuh).
+// Keadaan lampu dibaca dari nearInteract.sw.on (sakelar punya field `on`).
+export function actionLabelKey(game) {
+  if (!game) return 'touch.actionDefault';
+  const p = game.player;
+  if (p && p.hiddenInLocker) return 'touch.actionExit';
+  const n = game.nearInteract;
+  if (!n) return 'touch.actionDefault';
+  if (n.type === 'locker') return 'touch.actionHide';
+  if (n.type === 'locker-exit') return 'touch.actionExit';
+  if (n.type === 'switch') return n.sw && n.sw.on ? 'touch.actionOff' : 'touch.actionOn';
+  return 'touch.actionDefault';
+}
+
 export class TouchControls {
   constructor(input, game) {
     this.input = input;
@@ -39,12 +54,37 @@ export class TouchControls {
     };
     set('tb-run', 'touch.run');
     set('tb-crouch', 'touch.crouch');
-    set('tb-action', 'touch.action');
     set('tb-takedown', 'touch.takedown');
     set('tb-throw', 'touch.throw');
     set('btn-touch-pause', 'touch.pause');
     const crouchBtn = document.getElementById('tb-crouch');
     if (crouchBtn) crouchBtn.classList.toggle('active', this.crouchOn);
+    // Label AKSI kontekstual (ganti bahasa langsung mengubah label).
+    this._actionKey = null;
+    this._takedownOn = null;
+    this.updateActionState();
+  }
+
+  // Label + sorotan tombol AKSI mengikuti game.nearInteract — dipanggil
+  // tiap frame dari main loop; DOM hanya disentuh bila ada yang berubah.
+  updateActionState() {
+    const key = actionLabelKey(this.game);
+    if (key !== this._actionKey) {
+      this._actionKey = key;
+      const btn = document.getElementById('tb-action');
+      if (btn) {
+        btn.textContent = t(key);
+        const hasAction = key !== 'touch.actionDefault';
+        btn.classList.toggle('attention', hasAction);
+        btn.classList.toggle('idle', !hasAction);
+      }
+    }
+    const tdOn = !!(this.game && this.game.takedownTarget);
+    if (tdOn !== this._takedownOn) {
+      this._takedownOn = tdOn;
+      const td = document.getElementById('tb-takedown');
+      if (td) td.classList.toggle('attention', tdOn);
+    }
   }
 
   // -- joystick ---------------------------------------------------------------

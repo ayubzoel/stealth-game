@@ -213,9 +213,27 @@ body {
   touch-action: manipulation;
   opacity: 0.75;
   padding: 4px;
+  line-height: 1.15;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 .touch-btn.wide { grid-column: span 2; width: auto; }
 .touch-btn.active { background: #f59e0b; color: #1e293b; opacity: 1; }
+/* Tombol AKSI kontekstual: label panjang ("MATIKAN LAMPU") muat 2 baris. */
+#tb-action { font-size: 11px; }
+/* Tanpa aksi di dekat: tombol tetap tampil (layout stabil) tapi redup. */
+.touch-btn.idle { opacity: 0.45; }
+/* Ada aksi tersedia: tombol berdenyut agar terlihat (dipakai tb-action
+   saat nearInteract aktif, dan tb-takedown saat takedown siap). */
+.touch-btn.attention {
+  opacity: 1;
+  border-color: #fde68a;
+  animation: tb-attention 0.9s ease-in-out infinite;
+}
+@keyframes tb-attention {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+  50% { box-shadow: 0 0 12px 3px rgba(245, 158, 11, 0.75); }
+}
 
 #btn-touch-pause {
   position: absolute;
@@ -308,6 +326,7 @@ body {
   /* Tombol aksi lebih lebar: label TAKEDOWN/JONGKOK tidak meluber. */
   .touch-on #touch-buttons { grid-template-columns: repeat(2, 80px); }
   .touch-on .touch-btn { width: 80px; font-size: 11px; }
+  .touch-on #tb-action { font-size: 10px; }
   #hud-exit { font-size: 11px; bottom: 4px; padding: 0 8px; }
   /* Overlay: konten mulai dari atas (bukan tengah) supaya tidak terpotong
      dan bisa di-scroll; latar lebih pekat agar HUD tidak tembus. */
@@ -344,5 +363,6 @@ body {
   .touch-on #joy-knob { width: 48px; height: 48px; margin: -24px 0 0 -24px; }
   .touch-on #touch-buttons { grid-template-columns: repeat(2, 72px); gap: 8px; }
   .touch-on .touch-btn { width: 72px; height: 56px; font-size: 10px; padding: 2px; }
+  .touch-on #tb-action { font-size: 9px; }
   .touch-on #hud-fps { display: none; }
 }

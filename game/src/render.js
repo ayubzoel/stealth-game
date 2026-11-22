@@ -4,6 +4,7 @@
 
 import { CONFIG } from './config.js';
 import { t } from './i18n.js';
+import { actionLabelKey } from './touch.js';
 
 const C = CONFIG;
 const TILE = C.TILE;
@@ -483,13 +484,16 @@ export class Renderer {
     // Petunjuk konteks: E interaksi / F takedown. Digambar dalam koordinat
     // layar (teks tidak ikut zoom), tapi posisinya dikonversi dari dunia
     // agar tetap menempel ke guard / titik interaksi.
+    // Di perangkat sentuh prompt TIDAK menyebut "E"/"F" — ia menunjuk
+    // tombol sentuh ("Ketuk …") yang labelnya sama dengan tombol AKSI.
     ctx.textAlign = 'center';
+    const touchOn = document.documentElement.classList.contains('touch-on');
     if (game.takedownTarget) {
       const g = game.takedownTarget;
       const s = worldToScreen(g.x, g.y - 26, game.player);
       ctx.fillStyle = '#fde68a';
       ctx.font = 'bold 13px sans-serif';
-      ctx.fillText(t('canvas.takedownPrompt'), s.x, s.y);
+      ctx.fillText(touchOn ? t('touch.tapTakedown') : t('canvas.takedownPrompt'), s.x, s.y);
     } else if (game.nearInteract) {
       const n = game.nearInteract;
       let text = '';
@@ -500,7 +504,10 @@ export class Renderer {
         const s = worldToScreen(n.x, n.y - 26, game.player);
         ctx.fillStyle = '#e2e8f0';
         ctx.font = 'bold 13px sans-serif';
-        ctx.fillText(text, s.x, s.y);
+        ctx.fillText(
+          touchOn ? t('touch.tapAction', { label: t(actionLabelKey(game)) }) : text,
+          s.x, s.y,
+        );
       }
     }
   }

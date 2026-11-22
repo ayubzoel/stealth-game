@@ -476,6 +476,8 @@ class Game {
       this.timeElapsed += dt;
       this.player.update(dt, this, this.input);
       this.updateInteractions();
+      // Label tombol AKSI sentuh mengikuti interaksi terdekat (tiap frame).
+      if (this.touchControls) this.touchControls.updateActionState();
       for (const g of this.guards) g.update(dt, this);
       for (const cam of this.cameras) cam.update(dt, this);
 
