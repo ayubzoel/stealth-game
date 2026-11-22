@@ -295,17 +295,39 @@ body {
   .hud-right { justify-content: flex-start; }
   .meter { width: 100px; }
   .touch-on #hud-fps { display: none; }
+  /* Tombol pause ramping di portrait agar baris 1 HUD muat satu baris. */
+  .touch-on #hud { padding-right: 68px; }
+  .touch-on #btn-touch-pause {
+    top: 6px;
+    right: 6px;
+    min-width: 56px;
+    min-height: 56px;
+    font-size: 11px;
+    padding: 4px 6px;
+  }
+  /* Tombol aksi lebih lebar: label TAKEDOWN/JONGKOK tidak meluber. */
+  .touch-on #touch-buttons { grid-template-columns: repeat(2, 80px); }
+  .touch-on .touch-btn { width: 80px; font-size: 11px; }
   #hud-exit { font-size: 11px; bottom: 4px; padding: 0 8px; }
-  .overlay { padding: 16px; gap: 12px; }
+  /* Overlay: konten mulai dari atas (bukan tengah) supaya tidak terpotong
+     dan bisa di-scroll; latar lebih pekat agar HUD tidak tembus. */
+  .overlay { padding: 12px; gap: 8px; justify-content: flex-start; background: rgba(3, 5, 16, 0.94); }
+  /* Judul lebih kecil di portrait agar tidak tertutup tombol ID | EN. */
+  .overlay h1 { font-size: 26px; letter-spacing: 2px; }
+  .lang-toggle { top: 8px; right: 8px; padding: 6px 10px; font-size: 12px; }
+  /* Tombol menu sebaris (3 tombol muat satu baris) agar layar judul muat. */
+  .menu-buttons { gap: 6px; }
+  .menu-buttons button { font-size: 13px; padding: 10px 12px; }
+  /* Hint keyboard di layar judul tidak relevan di HP — sembunyikan. */
+  .touch-on #title-screen .hint { display: none; }
   .tagline { font-size: 14px; }
   .hint { font-size: 12px; }
   .howto-body { font-size: 13px; }
-  .menu-buttons button { font-size: 15px; padding: 12px 18px; }
 }
 
 /* -- Landscape sentuh (tinggi < 500 px): kontrol overlay sudut bawah ------- */
 @media (orientation: landscape) and (max-height: 499px) {
-  #wrap { position: relative; }
+  #wrap { position: relative; max-width: calc((100vh - 16px) * 16 / 9); margin: 0 auto; }
   .touch-on #touch-deck {
     position: absolute;
     left: 0;
@@ -320,7 +342,7 @@ body {
   .touch-on #touch-deck > * { pointer-events: auto; }
   .touch-on #joy-base { width: 96px; height: 96px; }
   .touch-on #joy-knob { width: 48px; height: 48px; margin: -24px 0 0 -24px; }
-  .touch-on #touch-buttons { grid-template-columns: repeat(2, 56px); gap: 8px; }
-  .touch-on .touch-btn { width: 56px; height: 56px; font-size: 11px; }
+  .touch-on #touch-buttons { grid-template-columns: repeat(2, 72px); gap: 8px; }
+  .touch-on .touch-btn { width: 72px; height: 56px; font-size: 10px; padding: 2px; }
   .touch-on #hud-fps { display: none; }
 }
