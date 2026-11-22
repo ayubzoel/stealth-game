@@ -82,7 +82,7 @@ export const CONFIG = {
     playerDark: '#0f766e',
     guard: '#e5484d',
     guardAmber: '#f5a524',
-    coneCalm: 'rgba(255, 205, 60, 0.55)',
+    coneCalm: 'rgba(255, 205, 60, 0.72)',
     coneSuspicious: 'rgba(245, 165, 36, 0.40)',
     coneChase: 'rgba(229, 72, 77, 0.44)',
     coneCamera: 'rgba(120, 200, 255, 0.30)',

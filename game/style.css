@@ -46,6 +46,7 @@ body {
 #hud-stance.crouch { color: #2dd4bf; }
 #hud-stance.run { color: #f59e0b; }
 #hud-light { color: #94a3b8; }
+#hud-fps { color: #7dd3fc; font-variant-numeric: tabular-nums; }
 #hud-light.light-warn { color: #fbbf24; }
 
 .meter {

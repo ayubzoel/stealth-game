@@ -389,6 +389,9 @@ class Game {
       this.fps = Math.round(this._fpsFrames / this._fpsTime);
       this._fpsFrames = 0;
       this._fpsTime = 0;
+      // FPS counter terlihat di HUD (~2x/detik, waktu nyata).
+      const fpsEl = this.$('hud-fps');
+      if (fpsEl) fpsEl.textContent = 'FPS: ' + this.fps;
     }
 
     if (this.phase === 'playing') {
