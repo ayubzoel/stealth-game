@@ -182,7 +182,7 @@ const LEVEL_1_ROWS = [
 // guard koridor (baris 8), lalu guard bawah (baris 15).
 const LEVEL_1_WAYPOINTS = [
   [[17, 8], [29, 8]],
-  [[2, 15], [6, 15]],
+  [[4, 10], [4, 16]],
   [[9, 15], [14, 15]],
 ];
 
@@ -217,8 +217,8 @@ const LEVEL_2_CAMERAS = [
 
 // Urutan spawn: guard koridor (baris 8), guard bawah (baris 15), guard baris 16.
 const LEVEL_2_WAYPOINTS = [
-  [[17, 8], [29, 8]],
-  [[2, 15], [6, 15]],
+  [[24, 6], [24, 8]],
+  [[4, 10], [4, 16]],
   [[9, 15], [14, 15]],
   [[17, 15], [21, 15]],
   [[2, 16], [14, 16]],
@@ -252,8 +252,8 @@ const LEVEL_3_ROWS = [
 // guard baris 16. Guard koridor berpatroli vertikal (menyilang arus koridor).
 const LEVEL_3_WAYPOINTS = [
   [[24, 6], [24, 8]],
-  [[2, 15], [6, 15]],
-  [[9, 15], [14, 15]],
+  [[4, 10], [4, 16]],
+  [[11, 14], [11, 16]],
   [[17, 15], [21, 15]],
   [[24, 15], [30, 15]],
   [[2, 16], [12, 16]],
