@@ -8,6 +8,9 @@
 //   S sakelar lampu (E: matikan/nyalakan lampion terdekat)
 
 import { CONFIG } from './config.js';
+import { LEVEL_4, LEVEL_5 } from './levels45.js';
+import { LEVEL_6, LEVEL_7 } from './levels67.js';
+import { LEVEL_8, LEVEL_9, LEVEL_10 } from './levels8910.js';
 
 const TILE = CONFIG.TILE;
 
@@ -275,5 +278,40 @@ export const LEVELS = [
     name: 'Pasar Tengah Malam',
     parTime: 150,
     ...parseMap(LEVEL_3_ROWS, LEVEL_3_WAYPOINTS, []),
+  },
+  {
+    name: LEVEL_4.nameId,
+    parTime: LEVEL_4.parTime,
+    ...parseMap(LEVEL_4.rows, LEVEL_4.waypoints, LEVEL_4.cameras),
+  },
+  {
+    name: LEVEL_5.nameId,
+    parTime: LEVEL_5.parTime,
+    ...parseMap(LEVEL_5.rows, LEVEL_5.waypoints, LEVEL_5.cameras),
+  },
+  {
+    name: LEVEL_6.nameId,
+    parTime: LEVEL_6.parTime,
+    ...parseMap(LEVEL_6.rows, LEVEL_6.waypoints, LEVEL_6.cameras),
+  },
+  {
+    name: LEVEL_7.nameId,
+    parTime: LEVEL_7.parTime,
+    ...parseMap(LEVEL_7.rows, LEVEL_7.waypoints, LEVEL_7.cameras),
+  },
+  {
+    name: LEVEL_8.nameId,
+    parTime: LEVEL_8.parTime,
+    ...parseMap(LEVEL_8.rows, LEVEL_8.waypoints, LEVEL_8.cameras),
+  },
+  {
+    name: LEVEL_9.nameId,
+    parTime: LEVEL_9.parTime,
+    ...parseMap(LEVEL_9.rows, LEVEL_9.waypoints, LEVEL_9.cameras),
+  },
+  {
+    name: LEVEL_10.nameId,
+    parTime: LEVEL_10.parTime,
+    ...parseMap(LEVEL_10.rows, LEVEL_10.waypoints, LEVEL_10.cameras),
   },
 ];
