@@ -11,6 +11,9 @@ export class Input {
     this.clickQueue = []; // { x, y } dalam koordinat canvas logis
     this.interactQueue = []; // tekan E (sekali per keydown)
     this.takedownQueue = []; // tekan F (sekali per keydown)
+    this.joystick = null; // { x, y } vektor joystick sentuh (null = tidak aktif)
+    this.touchRun = false; // tombol LARI sentuh ditahan
+    this.touchCrouch = false; // toggle JONGKOK sentuh
     this.onPause = null;
     this.onRestart = null;
     this.onMute = null;
@@ -46,8 +49,12 @@ export class Input {
     });
   }
 
-  // Vektor gerak ternormalisasi dari WASD / panah.
+  // Vektor gerak ternormalisasi: joystick sentuh bila aktif, jika tidak
+  // WASD / panah. Joystick sudah ternormalisasi (magnitude maks 1).
   moveVector() {
+    if (this.joystick && (this.joystick.x !== 0 || this.joystick.y !== 0)) {
+      return { x: this.joystick.x, y: this.joystick.y };
+    }
     let x = 0;
     let y = 0;
     if (this.keys.has('a') || this.keys.has('arrowleft')) x -= 1;
@@ -63,11 +70,11 @@ export class Input {
   }
 
   get running() {
-    return this.keys.has('shift');
+    return this.keys.has('shift') || this.touchRun;
   }
 
   get crouching() {
-    return this.keys.has('c');
+    return this.keys.has('c') || this.touchCrouch;
   }
 
   // true sekali per tekan E / F (konsumsi antrean).

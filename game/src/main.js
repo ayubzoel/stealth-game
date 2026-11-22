@@ -11,6 +11,7 @@ import { AudioEngine } from './audio.js';
 import { Input } from './input.js';
 import { applyShot } from './shots.js';
 import { t, setLang, getLang, levelName } from './i18n.js';
+import { TouchControls } from './touch.js';
 
 const C = CONFIG;
 
@@ -20,6 +21,13 @@ class Game {
     this.renderer = new Renderer(this.canvas);
     this.audio = new AudioEngine();
     this.input = new Input(this.canvas);
+    // Kontrol sentuh hanya dibuat di perangkat sentuh (atau ?touch=1);
+    // desktop tanpa sentuh tidak mendapat elemen sentuh sama sekali.
+    this.touchControls = null;
+    if (TouchControls.isTouchDevice()) {
+      this.touchControls = new TouchControls(this.input, this);
+      document.documentElement.classList.add('touch-on');
+    }
     this.phase = 'title'; // title | playing | paused | won | lost
     this.levelIndex = 0;
     this.level = null;

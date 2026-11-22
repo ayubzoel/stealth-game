@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Lorong Senja — Game Stealth</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="style.css">
@@ -30,6 +30,7 @@
       </div>
     </div>
     <div id="hud-exit"></div>
+    <button id="btn-touch-pause" data-i18n="touch.pause">⏸ Jeda</button>
 
     <div id="title-screen" class="overlay">
       <button id="btn-lang-title" class="lang-toggle" data-i18n="lang.toggle">ID | EN</button>
@@ -112,6 +113,18 @@
         <button id="btn-retry-lose" data-i18n="lose.retry">Coba Lagi (R)</button>
         <button id="btn-menu-lose" data-i18n="lose.menu">Menu Utama</button>
       </div>
+    </div>
+  </div>
+  <div id="touch-deck">
+    <div id="joy-zone">
+      <div id="joy-base"><div id="joy-knob"></div></div>
+    </div>
+    <div id="touch-buttons">
+      <button id="tb-run" class="touch-btn" data-i18n="touch.run">LARI</button>
+      <button id="tb-crouch" class="touch-btn" data-i18n="touch.crouch">JONGKOK</button>
+      <button id="tb-action" class="touch-btn" data-i18n="touch.action">AKSI</button>
+      <button id="tb-takedown" class="touch-btn" data-i18n="touch.takedown">TAKEDOWN</button>
+      <button id="tb-throw" class="touch-btn wide" data-i18n="touch.throw">LEMPAR</button>
     </div>
   </div>
 </div>
