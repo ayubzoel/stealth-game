@@ -10,6 +10,7 @@ import { Renderer } from './render.js';
 import { AudioEngine } from './audio.js';
 import { Input } from './input.js';
 import { applyShot } from './shots.js';
+import { t, setLang, getLang, levelName } from './i18n.js';
 
 const C = CONFIG;
 
@@ -33,7 +34,8 @@ class Game {
     this.peakDetection = 0;
     this.nearMissCooldown = 0;
     this.noiseFlashes = [];
-    this.bannerText = '';
+    this.bannerKey = ''; // kunci i18n banner (diterjemahkan saat digambar)
+    this.bannerParams = null;
     this.bannerTimer = 0;
     this.lastTime = 0;
     this.fps = 0;
@@ -56,7 +58,7 @@ class Game {
     };
     this.input.onMute = () => {
       const muted = this.audio.toggleMute();
-      this.banner(muted ? 'Suara dimatikan (M)' : 'Suara dinyalakan (M)', 1.2);
+      this.banner(muted ? 'banner.muteOff' : 'banner.muteOn', 1.2);
     };
     this.input.onEscape = () => {
       if (this.phase === 'playing' || this.phase === 'paused') this.showTitle();
@@ -64,9 +66,42 @@ class Game {
     this.input.onAnyKey = () => this.audio.ensure();
 
     this.bindMenuButtons();
+    this.applyLanguage();
     this.showTitle();
     this.updateHUD();
     requestAnimationFrame((t) => this.loop(t));
+  }
+
+  // -- bahasa ---------------------------------------------------------------
+  // Terjemahkan ulang semua elemen statis (data-i18n / data-i18n-html)
+  // dan teks dinamis yang sedang tampil; HUD dibaca via t() tiap frame.
+  applyLanguage() {
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      el.textContent = t(el.dataset.i18n);
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach((el) => {
+      el.innerHTML = t(el.dataset.i18nHtml);
+    });
+    document.querySelectorAll('[data-level]').forEach((el) => {
+      const n = parseInt(el.dataset.level, 10);
+      el.textContent = 'Level ' + (n + 1) + ' — ' + levelName(n) + ' (' + t('levelSuffix.' + n) + ')';
+    });
+    if (this.phase === 'won') {
+      this.$('win-level-name').textContent = levelName(this.levelIndex);
+      this.$('btn-next-level').textContent =
+        this.levelIndex + 1 < LEVELS.length ? t('win.next') : t('win.backMenu');
+    }
+    if (this.phase === 'lost') {
+      this.$('lose-level-name').textContent = levelName(this.levelIndex);
+      this.$('lose-reason').textContent = t('lose.reason');
+    }
+    if (this.touchControls) this.touchControls.updateLabels();
+    this.updateHUD();
+  }
+
+  toggleLanguage() {
+    setLang(getLang() === 'id' ? 'en' : 'id');
+    this.applyLanguage();
   }
 
   // -- menu / overlay -------------------------------------------------------
@@ -118,6 +153,8 @@ class Game {
     bind('btn-play', () => this.startLevel(this.levelIndex));
     bind('btn-howto', () => this.showHowTo());
     bind('btn-levels', () => this.showLevels());
+    bind('btn-lang-title', () => this.toggleLanguage());
+    bind('btn-lang-pause', () => this.toggleLanguage());
     bind('btn-howto-back', () => this.showTitle());
     bind('btn-levels-back', () => this.showTitle());
     bind('btn-resume', () => this.togglePause());
@@ -159,7 +196,8 @@ class Game {
     this.nearMisses = 0;
     this.nearMissCooldown = 0;
     this.noiseFlashes = [];
-    this.bannerText = '';
+    this.bannerKey = '';
+    this.bannerParams = null;
     this.bannerTimer = 0;
     this.checkpoint = { x: def.playerSpawn.x, y: def.playerSpawn.y };
     this.takenDown = [];
@@ -202,9 +240,9 @@ class Game {
     this.$('win-score').textContent = this.score;
     this.$('win-docs').textContent = this.docsCollected + '/' + this.level.documents.length;
     this.$('win-bonus').textContent = '+' + timeBonus;
-    this.$('win-level-name').textContent = this.level.name;
+    this.$('win-level-name').textContent = levelName(this.levelIndex);
     this.$('btn-next-level').textContent =
-      this.levelIndex + 1 < LEVELS.length ? 'Level Berikutnya' : 'Kembali ke Menu';
+      this.levelIndex + 1 < LEVELS.length ? t('win.next') : t('win.backMenu');
     this.hideAllOverlays();
     this.$('win-screen').classList.remove('hidden');
     this.updateHUD();
@@ -216,8 +254,8 @@ class Game {
     this._loseReason = reason || 'tertangkap';
     this._respawnTimer = 1.6; // tampil "Tertangkap!" sebentar lalu respawn
     this.audio.lose();
-    this.$('lose-reason').textContent = 'Raka tertangkap! Kembali ke checkpoint…';
-    this.$('lose-level-name').textContent = this.level.name;
+    this.$('lose-reason').textContent = t('lose.reason');
+    this.$('lose-level-name').textContent = levelName(this.levelIndex);
     this.$('lose-docs').textContent = this.docsCollected + '/' + this.level.documents.length;
     this.hideAllOverlays();
     this.$('lose-screen').classList.remove('hidden');
@@ -239,13 +277,14 @@ class Game {
     this.nearMisses = 0;
     this.nearMissCooldown = 0;
     this.noiseFlashes = [];
-    this.bannerText = '';
+    this.bannerKey = '';
+    this.bannerParams = null;
     this.bannerTimer = 0;
     this.nearInteract = null;
     this.takedownTarget = null;
     this.phase = 'playing';
     this.hideAllOverlays();
-    this.banner('Kembali ke checkpoint', 1.6);
+    this.banner('banner.checkpoint', 1.6);
     this.updateHUD();
   }
 
@@ -262,8 +301,9 @@ class Game {
     }
   }
 
-  banner(text, seconds) {
-    this.bannerText = text;
+  banner(key, seconds, params) {
+    this.bannerKey = key;
+    this.bannerParams = params || null;
     this.bannerTimer = seconds;
   }
 
@@ -327,19 +367,19 @@ class Game {
         p.x = n.locker.cx;
         p.y = n.locker.cy;
         p.hiddenInLocker = true;
-        this.banner('Bersembunyi di lemari (E untuk keluar)', 1.6);
+        this.banner('banner.lockerIn', 1.6);
       } else if (n.type === 'locker-exit') {
         p.hiddenInLocker = false;
         if (p.lockerEntry) {
           p.x = p.lockerEntry.x;
           p.y = p.lockerEntry.y;
         }
-        this.banner('Keluar dari lemari', 1.2);
+        this.banner('banner.lockerOut', 1.2);
       } else if (n.type === 'switch') {
         const sw = n.sw;
         sw.on = !sw.on;
         if (sw.lantern) sw.lantern.on = sw.on;
-        this.banner(sw.on ? 'Lampu dinyalakan' : 'Lampu dimatikan — area jadi gelap', 1.6);
+        this.banner(sw.on ? 'banner.lightOn' : 'banner.lightOff', 1.6);
         this.audio.clink();
       }
     }
@@ -352,7 +392,7 @@ class Game {
     this.takenDown.push({ x: g.x, y: g.y });
     this.guards = this.guards.filter((o) => o !== g);
     this.score += C.SCORE_TAKEDOWN;
-    this.banner('Takedown sunyi! +' + C.SCORE_TAKEDOWN, 1.8);
+    this.banner('banner.takedown', 1.8, { n: C.SCORE_TAKEDOWN });
     this.audio.pickup();
     let witnessed = false;
     for (const o of this.guards) {
@@ -364,7 +404,7 @@ class Game {
     }
     if (witnessed) {
       this.detection = Math.max(this.detection, 85);
-      this.banner('Ketahuan! Ada yang melihat takedown!', 2);
+      this.banner('banner.witnessed', 2);
       this.audio.alarm();
     }
     this.updateHUD();
@@ -428,7 +468,7 @@ class Game {
         this.nearMissCooldown = 8;
         this.score = Math.max(0, this.score - C.SCORE_NEAR_MISS_PENALTY);
         this.detection = Math.min(100, this.detection + 8); // alarm naik sedikit
-        this.banner('Hampir terlihat!', 2.2);
+        this.banner('banner.nearMiss', 2.2);
         this.audio.suspicious();
       }
 
@@ -450,19 +490,19 @@ class Game {
   // -- HUD ------------------------------------------------------------------
   updateHUD() {
     if (!this.level) {
-      this.$('hud-level').textContent = 'Lorong Senja';
+      this.$('hud-level').textContent = t('hud.title');
       return;
     }
-    this.$('hud-level').textContent = 'Level ' + (this.levelIndex + 1) + ' — ' + this.level.name;
-    this.$('hud-docs').textContent = 'Dokumen ' + this.docsCollected + '/' + this.level.documents.length;
+    this.$('hud-level').textContent = 'Level ' + (this.levelIndex + 1) + ' — ' + levelName(this.levelIndex);
+    this.$('hud-docs').textContent = t('hud.docs', { n: this.docsCollected, total: this.level.documents.length });
     this.$('hud-time').textContent = this.formatTime(this.timeElapsed);
-    this.$('hud-score').textContent = 'Skor ' + this.score;
+    this.$('hud-score').textContent = t('hud.score', { n: this.score });
     const stance = this.$('hud-stance');
     if (this.player && this.player.crouching) {
-      stance.textContent = 'JONGKOK';
+      stance.textContent = t('hud.stanceCrouch');
       stance.className = 'crouch';
     } else if (this.player && this.player.running) {
-      stance.textContent = 'LARI';
+      stance.textContent = t('hud.stanceRun');
       stance.className = 'run';
     } else {
       stance.textContent = '';
@@ -472,21 +512,21 @@ class Game {
     meter.style.width = Math.round(this.detection) + '%';
     meter.className = 'meter-fill ' + (this.detection >= C.CHASE_AT ? 'danger' : this.detection >= C.SUSPICIOUS_AT ? 'warn' : '');
     this.$('hud-meter-label').textContent =
-      'Terdeteksi ' + Math.round(this.detection) + '%' +
-      (this.detection >= C.CHASE_AT ? ' — LARI!' : this.detection >= C.SUSPICIOUS_AT ? ' — Curiga!' : '');
+      t('hud.detected', { n: Math.round(this.detection) }) +
+      (this.detection >= C.CHASE_AT ? t('hud.detectedRun') : this.detection >= C.SUSPICIOUS_AT ? t('hud.detectedSusp') : '');
     this.$('hud-exit').textContent =
-      this.docsCollected >= this.level.documents.length ? 'Pintu keluar TERBUKA — lari ke EXIT!' : 'Ambil semua dokumen untuk membuka pintu keluar';
+      this.docsCollected >= this.level.documents.length ? t('hud.exitOpen') : t('hud.exitClosed');
     const p = this.player;
     if (p) {
       if (p.hiddenInLocker) {
-        this.$('hud-light').textContent = 'DI LEMARI — tersembunyi';
+        this.$('hud-light').textContent = t('hud.locker');
         this.$('hud-light').className = '';
       } else if (p.inBush) {
-        this.$('hud-light').textContent = 'SEMAK — tersembunyi';
+        this.$('hud-light').textContent = t('hud.bush');
         this.$('hud-light').className = '';
       } else {
         const light = lightAt(this.level, p.x, p.y);
-        this.$('hud-light').textContent = light > 0.55 ? 'TERANG — mudah terlihat!' : light > 0.25 ? 'Remang' : 'GELAP — aman bersembunyi';
+        this.$('hud-light').textContent = light > 0.55 ? t('hud.bright') : light > 0.25 ? t('hud.dim') : t('hud.dark');
         this.$('hud-light').className = light > 0.55 ? 'light-warn' : '';
       }
     }

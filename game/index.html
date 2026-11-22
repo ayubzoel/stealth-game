@@ -32,83 +32,85 @@
     <div id="hud-exit"></div>
 
     <div id="title-screen" class="overlay">
-      <h1>LORONG SENJA</h1>
-      <p class="tagline">Raka, kurir pasar malam, harus mengambil dokumen rahasia<br>
+      <button id="btn-lang-title" class="lang-toggle" data-i18n="lang.toggle">ID | EN</button>
+      <h1 data-i18n="title">LORONG SENJA</h1>
+      <p class="tagline" data-i18n-html="tagline">Raka, kurir pasar malam, harus mengambil dokumen rahasia<br>
       dan lolos dari gudang tanpa terlihat satu pun penjaga.</p>
       <div class="menu-buttons">
-        <button id="btn-play">▶ Mulai Bermain</button>
-        <button id="btn-levels">Pilih Level</button>
-        <button id="btn-howto">Cara Bermain</button>
+        <button id="btn-play" data-i18n="menu.play">▶ Mulai Bermain</button>
+        <button id="btn-levels" data-i18n="menu.levels">Pilih Level</button>
+        <button id="btn-howto" data-i18n="menu.howto">Cara Bermain</button>
       </div>
-      <p class="hint">WASD bergerak &nbsp;·&nbsp; Shift lari (bersuara) &nbsp;·&nbsp; C jongkok &nbsp;·&nbsp; Klik lempar pengalih<br>
+      <p class="hint" data-i18n-html="menu.hint">WASD bergerak &nbsp;·&nbsp; Shift lari (bersuara) &nbsp;·&nbsp; C jongkok &nbsp;·&nbsp; Klik lempar pengalih<br>
       E interaksi &nbsp;·&nbsp; F takedown &nbsp;·&nbsp; R restart &nbsp;·&nbsp; P jeda &nbsp;·&nbsp; M suara &nbsp;·&nbsp; Esc menu</p>
     </div>
 
     <div id="howto-screen" class="overlay hidden">
-      <h2>Cara Bermain</h2>
+      <h2 data-i18n="howto.title">Cara Bermain</h2>
       <div class="howto-body">
-        <p><b>Tujuan:</b> ambil semua dokumen, lalu capai pintu <b>EXIT</b> yang terbuka.</p>
-        <p><b>Gerak:</b> WASD / tombol panah = <b>jalan</b> (sunyi). Tahan <b>Shift</b> = <b>lari</b> — cepat tapi bersuara (lingkaran suara terlihat, guard mendekat). Tahan <b>C</b> = <b>jongkok</b> — pelan, hitbox lebih kecil, deteksi setengah.</p>
-        <p><b>Sembunyi:</b> berdiri di <b>semak</b> hijau agar tidak terlihat (kecuali guard sangat dekat). Di tempat <b>gelap</b> deteksi naik lebih lambat. Tekan <b>E</b> di dekat <b>lemari</b> untuk bersembunyi di dalamnya, E lagi untuk keluar.</p>
-        <p><b>Takedown:</b> dekati guard dari <b>belakang</b> sampai muncul "F — Takedown sunyi!", lalu tekan <b>F</b>. Guard lumpuh tanpa alarm (+150) — tapi bila guard lain melihat, ia langsung alert!</p>
-        <p><b>Pengalih:</b> klik mouse untuk melempar koin — penjaga akan mendatangi suara itu.</p>
-        <p><b>Sakelar lampu:</b> tekan <b>E</b> di dekat sakelar untuk mematikan lampion terdekat — area jadi gelap, deteksi melambat.</p>
-        <p><b>Penglihatan penjaga:</b> kerucut kuning. Oranye = curiga, merah = mengejar! "?" = curiga, "!" = alert.</p>
-        <p><b>Tertangkap?</b> Kamu respawn di <b>checkpoint</b> terakhir (awal level / tiap dokumen diambil) — dokumen yang sudah diambil tetap milikmu.</p>
-        <p><b>R</b> restart level &nbsp;·&nbsp; <b>P</b> jeda &nbsp;·&nbsp; <b>M</b> suara &nbsp;·&nbsp; <b>Esc</b> menu</p>
+        <p data-i18n-html="howto.p1"><b>Tujuan:</b> ambil semua dokumen, lalu capai pintu <b>EXIT</b> yang terbuka.</p>
+        <p data-i18n-html="howto.p2"><b>Gerak:</b> WASD / tombol panah = <b>jalan</b> (sunyi). Tahan <b>Shift</b> = <b>lari</b> — cepat tapi bersuara (lingkaran suara terlihat, guard mendekat). Tahan <b>C</b> = <b>jongkok</b> — pelan, hitbox lebih kecil, deteksi setengah.</p>
+        <p data-i18n-html="howto.p3"><b>Sembunyi:</b> berdiri di <b>semak</b> hijau agar tidak terlihat (kecuali guard sangat dekat). Di tempat <b>gelap</b> deteksi naik lebih lambat. Tekan <b>E</b> di dekat <b>lemari</b> untuk bersembunyi di dalamnya, E lagi untuk keluar.</p>
+        <p data-i18n-html="howto.p4"><b>Takedown:</b> dekati guard dari <b>belakang</b> sampai muncul "F — Takedown sunyi!", lalu tekan <b>F</b>. Guard lumpuh tanpa alarm (+150) — tapi bila guard lain melihat, ia langsung alert!</p>
+        <p data-i18n-html="howto.p5"><b>Pengalih:</b> klik mouse untuk melempar koin — penjaga akan mendatangi suara itu.</p>
+        <p data-i18n-html="howto.p6"><b>Sakelar lampu:</b> tekan <b>E</b> di dekat sakelar untuk mematikan lampion terdekat — area jadi gelap, deteksi melambat.</p>
+        <p data-i18n-html="howto.p7"><b>Penglihatan penjaga:</b> kerucut kuning. Oranye = curiga, merah = mengejar! "?" = curiga, "!" = alert.</p>
+        <p data-i18n-html="howto.p8"><b>Tertangkap?</b> Kamu respawn di <b>checkpoint</b> terakhir (awal level / tiap dokumen diambil) — dokumen yang sudah diambil tetap milikmu.</p>
+        <p data-i18n-html="howto.p9"><b>R</b> restart level &nbsp;·&nbsp; <b>P</b> jeda &nbsp;·&nbsp; <b>M</b> suara &nbsp;·&nbsp; <b>Esc</b> menu</p>
       </div>
       <div class="menu-buttons">
-        <button id="btn-howto-back">Kembali</button>
+        <button id="btn-howto-back" data-i18n="howto.back">Kembali</button>
       </div>
     </div>
 
     <div id="levels-screen" class="overlay hidden">
-      <h2>Pilih Level</h2>
+      <h2 data-i18n="levels.title">Pilih Level</h2>
       <div class="menu-buttons column">
         <button data-level="0">Level 1 — Gudang Senja (3 penjaga)</button>
         <button data-level="1">Level 2 — Lorong Lampion (5 penjaga + kamera)</button>
         <button data-level="2">Level 3 — Pasar Tengah Malam (7 penjaga)</button>
       </div>
       <div class="menu-buttons">
-        <button id="btn-levels-back">Kembali</button>
+        <button id="btn-levels-back" data-i18n="levels.back">Kembali</button>
       </div>
     </div>
 
     <div id="pause-screen" class="overlay hidden">
-      <h2>Jeda</h2>
+      <button id="btn-lang-pause" class="lang-toggle" data-i18n="lang.toggle">ID | EN</button>
+      <h2 data-i18n="pause.title">Jeda</h2>
       <div class="menu-buttons column">
-        <button id="btn-resume">Lanjutkan (P)</button>
-        <button id="btn-restart-pause">Ulangi Level (R)</button>
-        <button id="btn-quit-pause">Menu Utama (Esc)</button>
+        <button id="btn-resume" data-i18n="pause.resume">Lanjutkan (P)</button>
+        <button id="btn-restart-pause" data-i18n="pause.restart">Ulangi Level (R)</button>
+        <button id="btn-quit-pause" data-i18n="pause.quit">Menu Utama (Esc)</button>
       </div>
     </div>
 
     <div id="win-screen" class="overlay hidden">
-      <h2 class="win-title">LOLOS! 🎉</h2>
-      <p>Raka berhasil membawa dokumen keluar dari <span id="win-level-name"></span>.</p>
+      <h2 class="win-title" data-i18n="win.title">LOLOS! 🎉</h2>
+      <p><span data-i18n="win.prefix">Raka berhasil membawa dokumen keluar dari </span><span id="win-level-name"></span><span data-i18n="win.suffix">.</span></p>
       <div class="stats">
-        <p>Waktu: <b id="win-time">0:00</b></p>
-        <p>Dokumen: <b id="win-docs">0/0</b></p>
-        <p>Bonus waktu: <b id="win-bonus">+0</b></p>
-        <p>Skor akhir: <b id="win-score">0</b></p>
+        <p><span data-i18n="win.time">Waktu:</span> <b id="win-time">0:00</b></p>
+        <p><span data-i18n="win.docs">Dokumen:</span> <b id="win-docs">0/0</b></p>
+        <p><span data-i18n="win.bonus">Bonus waktu:</span> <b id="win-bonus">+0</b></p>
+        <p><span data-i18n="win.score">Skor akhir:</span> <b id="win-score">0</b></p>
       </div>
       <div class="menu-buttons">
-        <button id="btn-next-level">Level Berikutnya</button>
-        <button id="btn-replay-win">Ulangi Level</button>
-        <button id="btn-menu-win">Menu Utama</button>
+        <button id="btn-next-level" data-i18n="win.next">Level Berikutnya</button>
+        <button id="btn-replay-win" data-i18n="win.replay">Ulangi Level</button>
+        <button id="btn-menu-win" data-i18n="win.menu">Menu Utama</button>
       </div>
     </div>
 
     <div id="lose-screen" class="overlay hidden">
-      <h2 class="lose-title">KETAHUAN!</h2>
-      <p id="lose-reason">Raka tertangkap penjaga gudang!</p>
-      <p>Level: <span id="lose-level-name"></span> &nbsp;·&nbsp; Dokumen: <span id="lose-docs"></span></p>
-      <p class="hint">Tip: jongkok (C) di dekat penjaga, sembunyi di semak atau lemari,<br>
+      <h2 class="lose-title" data-i18n="lose.title">KETAHUAN!</h2>
+      <p id="lose-reason" data-i18n="lose.reason">Raka tertangkap penjaga gudang!</p>
+      <p><span data-i18n="lose.level">Level:</span> <span id="lose-level-name"></span> &nbsp;·&nbsp; <span data-i18n="lose.docs">Dokumen:</span> <span id="lose-docs"></span></p>
+      <p class="hint" data-i18n-html="lose.tip">Tip: jongkok (C) di dekat penjaga, sembunyi di semak atau lemari,<br>
       dan lempar koin (klik) untuk mengalihkan perhatian mereka.<br>
       Tertangkap? Kamu kembali ke checkpoint — dokumen tetap tersimpan.</p>
       <div class="menu-buttons">
-        <button id="btn-retry-lose">Coba Lagi (R)</button>
-        <button id="btn-menu-lose">Menu Utama</button>
+        <button id="btn-retry-lose" data-i18n="lose.retry">Coba Lagi (R)</button>
+        <button id="btn-menu-lose" data-i18n="lose.menu">Menu Utama</button>
       </div>
     </div>
   </div>

@@ -114,7 +114,7 @@ export class Player {
         game.docsCollected += 1;
         game.score += C.SCORE_DOCUMENT;
         game.audio.pickup();
-        game.banner('Dokumen didapat! ' + game.docsCollected + '/' + game.level.documents.length, 1.6);
+        game.banner('banner.doc', 1.6, { n: game.docsCollected, total: game.level.documents.length });
         game.setCheckpoint(this.x, this.y);
       }
     }

@@ -3,6 +3,7 @@
 // pemain, dokumen, exit, kegelapan, dan efek suara.
 
 import { CONFIG } from './config.js';
+import { t } from './i18n.js';
 
 const C = CONFIG;
 const TILE = C.TILE;
@@ -210,11 +211,11 @@ export class Renderer {
     ctx.fillStyle = open ? '#06281c' : '#dbe2ec';
     ctx.font = 'bold 11px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(open ? 'KELUAR' : 'TERKUNCI', e.cx, e.cy - 3);
+    ctx.fillText(open ? t('canvas.exitOpen') : t('canvas.exitClosed'), e.cx, e.cy - 3);
     if (!open) {
       ctx.fillStyle = '#cbd5e1';
       ctx.font = '11px sans-serif';
-      ctx.fillText(game.docsCollected + '/' + level.documents.length + ' dokumen', e.cx, e.cy + 14);
+      ctx.fillText(t('canvas.documents', { n: game.docsCollected, total: level.documents.length }), e.cx, e.cy + 14);
     }
   }
 
@@ -419,7 +420,8 @@ export class Renderer {
   }
 
   drawBanner(ctx, game) {
-    if (!game.bannerText || game.bannerTimer <= 0) return;
+    if (!game.bannerKey || game.bannerTimer <= 0) return;
+    const text = t(game.bannerKey, game.bannerParams);
     ctx.fillStyle = 'rgba(2, 6, 23, 0.75)';
     ctx.fillRect(340, 90, 600, 40);
     ctx.strokeStyle = '#f59e0b';
@@ -428,7 +430,7 @@ export class Renderer {
     ctx.fillStyle = '#fde68a';
     ctx.font = 'bold 20px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(game.bannerText, 640, 117);
+    ctx.fillText(text, 640, 117);
   }
 
   drawPrompts(ctx, game) {
@@ -438,13 +440,13 @@ export class Renderer {
       const g = game.takedownTarget;
       ctx.fillStyle = '#fde68a';
       ctx.font = 'bold 13px sans-serif';
-      ctx.fillText('F — Takedown sunyi!', g.x, g.y - 26);
+      ctx.fillText(t('canvas.takedownPrompt'), g.x, g.y - 26);
     } else if (game.nearInteract) {
       const n = game.nearInteract;
       let text = '';
-      if (n.type === 'locker') text = 'E — Sembunyi di lemari';
-      else if (n.type === 'locker-exit') text = 'E — Keluar dari lemari';
-      else if (n.type === 'switch') text = n.sw.on ? 'E — Matikan lampu' : 'E — Nyalakan lampu';
+      if (n.type === 'locker') text = t('canvas.lockerPrompt');
+      else if (n.type === 'locker-exit') text = t('canvas.lockerExitPrompt');
+      else if (n.type === 'switch') text = n.sw.on ? t('canvas.switchOff') : t('canvas.switchOn');
       if (text) {
         ctx.fillStyle = '#e2e8f0';
         ctx.font = 'bold 13px sans-serif';

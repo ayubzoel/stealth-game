@@ -1,0 +1,233 @@
+// Lorong Senja — i18n.js
+// Semua string user-visible dalam ID + EN. Tidak ada dependensi eksternal.
+//
+//   t(key, params) — terjemahan kunci aktif; bila kunci tidak ada,
+//                     kembalikan kunci itu sendiri (dipakai banner literal
+//                     dari shots.js, mis. 'Hampir terlihat!').
+//   setLang('id'|'en') / getLang() — pilihan tersimpan di localStorage
+//                     kunci 'lorong-senja-lang'; default 'id'.
+//   levelName(index) — nama level sesuai bahasa aktif (world.js tidak diubah).
+
+const LANG_KEY = 'lorong-senja-lang';
+
+export const STRINGS = {
+  id: {
+    'title': 'LORONG SENJA',
+    'tagline': 'Raka, kurir pasar malam, harus mengambil dokumen rahasia<br>\ndan lolos dari gudang tanpa terlihat satu pun penjaga.',
+    'menu.play': '▶ Mulai Bermain',
+    'menu.levels': 'Pilih Level',
+    'menu.howto': 'Cara Bermain',
+    'menu.hint': 'WASD bergerak &nbsp;·&nbsp; Shift lari (bersuara) &nbsp;·&nbsp; C jongkok &nbsp;·&nbsp; Klik lempar pengalih<br>\nE interaksi &nbsp;·&nbsp; F takedown &nbsp;·&nbsp; R restart &nbsp;·&nbsp; P jeda &nbsp;·&nbsp; M suara &nbsp;·&nbsp; Esc menu',
+    'howto.title': 'Cara Bermain',
+    'howto.p1': '<b>Tujuan:</b> ambil semua dokumen, lalu capai pintu <b>EXIT</b> yang terbuka.',
+    'howto.p2': '<b>Gerak:</b> WASD / tombol panah = <b>jalan</b> (sunyi). Tahan <b>Shift</b> = <b>lari</b> — cepat tapi bersuara (lingkaran suara terlihat, guard mendekat). Tahan <b>C</b> = <b>jongkok</b> — pelan, hitbox lebih kecil, deteksi setengah.',
+    'howto.p3': '<b>Sembunyi:</b> berdiri di <b>semak</b> hijau agar tidak terlihat (kecuali guard sangat dekat). Di tempat <b>gelap</b> deteksi naik lebih lambat. Tekan <b>E</b> di dekat <b>lemari</b> untuk bersembunyi di dalamnya, E lagi untuk keluar.',
+    'howto.p4': '<b>Takedown:</b> dekati guard dari <b>belakang</b> sampai muncul "F — Takedown sunyi!", lalu tekan <b>F</b>. Guard lumpuh tanpa alarm (+150) — tapi bila guard lain melihat, ia langsung alert!',
+    'howto.p5': '<b>Pengalih:</b> klik mouse untuk melempar koin — penjaga akan mendatangi suara itu.',
+    'howto.p6': '<b>Sakelar lampu:</b> tekan <b>E</b> di dekat sakelar untuk mematikan lampion terdekat — area jadi gelap, deteksi melambat.',
+    'howto.p7': '<b>Penglihatan penjaga:</b> kerucut kuning. Oranye = curiga, merah = mengejar! "?" = curiga, "!" = alert.',
+    'howto.p8': '<b>Tertangkap?</b> Kamu respawn di <b>checkpoint</b> terakhir (awal level / tiap dokumen diambil) — dokumen yang sudah diambil tetap milikmu.',
+    'howto.p9': '<b>R</b> restart level &nbsp;·&nbsp; <b>P</b> jeda &nbsp;·&nbsp; <b>M</b> suara &nbsp;·&nbsp; <b>Esc</b> menu',
+    'howto.back': 'Kembali',
+    'levels.title': 'Pilih Level',
+    'levels.back': 'Kembali',
+    'levelName.0': 'Gudang Senja',
+    'levelName.1': 'Lorong Lampion',
+    'levelName.2': 'Pasar Tengah Malam',
+    'levelSuffix.0': '3 penjaga',
+    'levelSuffix.1': '5 penjaga + kamera',
+    'levelSuffix.2': '7 penjaga',
+    'pause.title': 'Jeda',
+    'pause.resume': 'Lanjutkan (P)',
+    'pause.restart': 'Ulangi Level (R)',
+    'pause.quit': 'Menu Utama (Esc)',
+    'win.title': 'LOLOS! 🎉',
+    'win.prefix': 'Raka berhasil membawa dokumen keluar dari ',
+    'win.suffix': '.',
+    'win.time': 'Waktu:',
+    'win.docs': 'Dokumen:',
+    'win.bonus': 'Bonus waktu:',
+    'win.score': 'Skor akhir:',
+    'win.next': 'Level Berikutnya',
+    'win.backMenu': 'Kembali ke Menu',
+    'win.replay': 'Ulangi Level',
+    'win.menu': 'Menu Utama',
+    'lose.title': 'KETAHUAN!',
+    'lose.reason': 'Raka tertangkap! Kembali ke checkpoint…',
+    'lose.level': 'Level:',
+    'lose.docs': 'Dokumen:',
+    'lose.tip': 'Tip: jongkok (C) di dekat penjaga, sembunyi di semak atau lemari,<br>\ndan lempar koin (klik) untuk mengalihkan perhatian mereka.<br>\nTertangkap? Kamu kembali ke checkpoint — dokumen tetap tersimpan.',
+    'lose.retry': 'Coba Lagi (R)',
+    'lose.menu': 'Menu Utama',
+    'hud.title': 'Lorong Senja',
+    'hud.docs': 'Dokumen {n}/{total}',
+    'hud.score': 'Skor {n}',
+    'hud.detected': 'Terdeteksi {n}%',
+    'hud.detectedRun': ' — LARI!',
+    'hud.detectedSusp': ' — Curiga!',
+    'hud.stanceCrouch': 'JONGKOK',
+    'hud.stanceRun': 'LARI',
+    'hud.locker': 'DI LEMARI — tersembunyi',
+    'hud.bush': 'SEMAK — tersembunyi',
+    'hud.bright': 'TERANG — mudah terlihat!',
+    'hud.dim': 'Remang',
+    'hud.dark': 'GELAP — aman bersembunyi',
+    'hud.exitOpen': 'Pintu keluar TERBUKA — lari ke EXIT!',
+    'hud.exitClosed': 'Ambil semua dokumen untuk membuka pintu keluar',
+    'banner.muteOff': 'Suara dimatikan (M)',
+    'banner.muteOn': 'Suara dinyalakan (M)',
+    'banner.lockerIn': 'Bersembunyi di lemari (E untuk keluar)',
+    'banner.lockerOut': 'Keluar dari lemari',
+    'banner.lightOn': 'Lampu dinyalakan',
+    'banner.lightOff': 'Lampu dimatikan — area jadi gelap',
+    'banner.takedown': 'Takedown sunyi! +{n}',
+    'banner.witnessed': 'Ketahuan! Ada yang melihat takedown!',
+    'banner.nearMiss': 'Hampir terlihat!',
+    'banner.doc': 'Dokumen didapat! {n}/{total}',
+    'banner.checkpoint': 'Kembali ke checkpoint',
+    'canvas.exitOpen': 'KELUAR',
+    'canvas.exitClosed': 'TERKUNCI',
+    'canvas.documents': '{n}/{total} dokumen',
+    'canvas.takedownPrompt': 'F — Takedown sunyi!',
+    'canvas.lockerPrompt': 'E — Sembunyi di lemari',
+    'canvas.lockerExitPrompt': 'E — Keluar dari lemari',
+    'canvas.switchOff': 'E — Matikan lampu',
+    'canvas.switchOn': 'E — Nyalakan lampu',
+    'touch.run': 'LARI',
+    'touch.crouch': 'JONGKOK',
+    'touch.action': 'AKSI',
+    'touch.takedown': 'TAKEDOWN',
+    'touch.throw': 'LEMPAR',
+    'touch.pause': '⏸ Jeda',
+    'rotate.hint': 'Putar HP ke landscape untuk layar lebih besar',
+    'lang.toggle': 'ID | EN',
+  },
+  en: {
+    'title': 'LORONG SENJA',
+    'tagline': 'Raka, a night-market courier, must grab the secret documents<br>and slip out of the warehouse without a single guard seeing him.',
+    'menu.play': '▶ Play',
+    'menu.levels': 'Select Level',
+    'menu.howto': 'How to Play',
+    'menu.hint': 'WASD move &nbsp;·&nbsp; Shift run (noisy) &nbsp;·&nbsp; C crouch &nbsp;·&nbsp; Click to throw a distraction<br>\nE interact &nbsp;·&nbsp; F takedown &nbsp;·&nbsp; R restart &nbsp;·&nbsp; P pause &nbsp;·&nbsp; M sound &nbsp;·&nbsp; Esc menu',
+    'howto.title': 'How to Play',
+    'howto.p1': '<b>Goal:</b> collect all documents, then reach the <b>EXIT</b> once it opens.',
+    'howto.p2': '<b>Move:</b> WASD / arrow keys = <b>walk</b> (silent). Hold <b>Shift</b> = <b>run</b> — fast but noisy (the sound ring is visible, guards come closer). Hold <b>C</b> = <b>crouch</b> — slow, smaller hitbox, half detection.',
+    'howto.p3': '<b>Hide:</b> stand in green <b>bushes</b> to stay unseen (unless a guard is very close). In <b>dark</b> places detection rises more slowly. Press <b>E</b> near a <b>locker</b> to hide inside it, E again to exit.',
+    'howto.p4': '<b>Takedown:</b> approach a guard from <b>behind</b> until "F — Silent takedown!" appears, then press <b>F</b>. The guard goes down without an alarm (+150) — but if another guard sees it, they go alert at once!',
+    'howto.p5': '<b>Distraction:</b> click the mouse to throw a coin — guards will go investigate the sound.',
+    'howto.p6': '<b>Light switch:</b> press <b>E</b> near a switch to turn off the nearest lantern — the area goes dark and detection slows.',
+    'howto.p7': '<b>Guard vision:</b> yellow cones. Orange = suspicious, red = chasing! "?" = suspicious, "!" = alert.',
+    'howto.p8': '<b>Caught?</b> You respawn at the last <b>checkpoint</b> (level start / each document collected) — documents you already took stay yours.',
+    'howto.p9': '<b>R</b> restart level &nbsp;·&nbsp; <b>P</b> pause &nbsp;·&nbsp; <b>M</b> sound &nbsp;·&nbsp; <b>Esc</b> menu',
+    'howto.back': 'Back',
+    'levels.title': 'Select Level',
+    'levels.back': 'Back',
+    'levelName.0': 'Dusk Warehouse',
+    'levelName.1': 'Lantern Alley',
+    'levelName.2': 'Midnight Market',
+    'levelSuffix.0': '3 guards',
+    'levelSuffix.1': '5 guards + camera',
+    'levelSuffix.2': '7 guards',
+    'pause.title': 'Paused',
+    'pause.resume': 'Resume (P)',
+    'pause.restart': 'Restart Level (R)',
+    'pause.quit': 'Main Menu (Esc)',
+    'win.title': 'ESCAPED! 🎉',
+    'win.prefix': 'Raka got the documents out of ',
+    'win.suffix': '.',
+    'win.time': 'Time:',
+    'win.docs': 'Documents:',
+    'win.bonus': 'Time bonus:',
+    'win.score': 'Final score:',
+    'win.next': 'Next Level',
+    'win.backMenu': 'Back to Menu',
+    'win.replay': 'Replay Level',
+    'win.menu': 'Main Menu',
+    'lose.title': 'CAUGHT!',
+    'lose.reason': 'Raka got caught! Back to the checkpoint…',
+    'lose.level': 'Level:',
+    'lose.docs': 'Documents:',
+    'lose.tip': 'Tip: crouch (C) near guards, hide in bushes or lockers,<br>and throw a coin (click) to distract them.<br>Caught? You return to the checkpoint — documents stay saved.',
+    'lose.retry': 'Retry (R)',
+    'lose.menu': 'Main Menu',
+    'hud.title': 'Lorong Senja',
+    'hud.docs': 'Documents {n}/{total}',
+    'hud.score': 'Score {n}',
+    'hud.detected': 'Detected {n}%',
+    'hud.detectedRun': ' — RUN!',
+    'hud.detectedSusp': ' — Suspicious!',
+    'hud.stanceCrouch': 'CROUCH',
+    'hud.stanceRun': 'RUN',
+    'hud.locker': 'IN LOCKER — hidden',
+    'hud.bush': 'IN BUSH — hidden',
+    'hud.bright': 'BRIGHT — easy to spot!',
+    'hud.dim': 'Dim',
+    'hud.dark': 'DARK — safe to hide',
+    'hud.exitOpen': 'Exit OPEN — run to the EXIT!',
+    'hud.exitClosed': 'Collect all documents to open the exit',
+    'banner.muteOff': 'Sound muted (M)',
+    'banner.muteOn': 'Sound on (M)',
+    'banner.lockerIn': 'Hiding in the locker (E to exit)',
+    'banner.lockerOut': 'Out of the locker',
+    'banner.lightOn': 'Light turned on',
+    'banner.lightOff': 'Light turned off — the area is dark',
+    'banner.takedown': 'Silent takedown! +{n}',
+    'banner.witnessed': 'Spotted! Someone saw the takedown!',
+    'banner.nearMiss': 'Almost spotted!',
+    'banner.doc': 'Document collected! {n}/{total}',
+    'banner.checkpoint': 'Back to checkpoint',
+    'canvas.exitOpen': 'EXIT',
+    'canvas.exitClosed': 'LOCKED',
+    'canvas.documents': '{n}/{total} documents',
+    'canvas.takedownPrompt': 'F — Silent takedown!',
+    'canvas.lockerPrompt': 'E — Hide in locker',
+    'canvas.lockerExitPrompt': 'E — Exit locker',
+    'canvas.switchOff': 'E — Turn off light',
+    'canvas.switchOn': 'E — Turn on light',
+    'touch.run': 'RUN',
+    'touch.crouch': 'CROUCH',
+    'touch.action': 'ACTION',
+    'touch.takedown': 'TAKEDOWN',
+    'touch.throw': 'THROW',
+    'touch.pause': '⏸ Pause',
+    'rotate.hint': 'Rotate your phone to landscape for a bigger view',
+    'lang.toggle': 'ID | EN',
+  },
+};
+
+let currentLang = 'id';
+try {
+  const saved = localStorage.getItem(LANG_KEY);
+  if (saved === 'id' || saved === 'en') currentLang = saved;
+} catch (e) { /* localStorage tidak tersedia — tetap ID */ }
+
+export function getLang() {
+  return currentLang;
+}
+
+export function setLang(lang) {
+  if (lang !== 'id' && lang !== 'en') return currentLang;
+  currentLang = lang;
+  try {
+    localStorage.setItem(LANG_KEY, lang);
+  } catch (e) { /* abaikan */ }
+  document.documentElement.lang = lang;
+  return currentLang;
+}
+
+export function t(key, params) {
+  const table = STRINGS[currentLang] || STRINGS.id;
+  let s = table[key];
+  if (s === undefined) s = STRINGS.id[key];
+  if (s === undefined) return key; // kunci tak dikenal: tampilkan apa adanya
+  if (params) {
+    for (const k of Object.keys(params)) {
+      s = s.split('{' + k + '}').join(String(params[k]));
+    }
+  }
+  return s;
+}
+
+export function levelName(index) {
+  return t('levelName.' + index);
+}
