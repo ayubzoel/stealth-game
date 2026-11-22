@@ -384,15 +384,15 @@ export class Renderer {
       const body =
         g.state === 'chase' ? C.COLORS.guard
           : g.state === 'suspicious' ? C.COLORS.guardAmber
-            : '#2b3a55';
+            : '#31435f';
       this._drawHumanoid(ctx, g, {
         body,
         dark: '#1e293b',
         skin: '#d9a06b',
-        hat: '#1e293b',
+        hat: '#243449',
         hatBrim: '#0f172a',
         legs: '#0f172a',
-        sleeve: g.state === 'patrol' ? '#22304a' : body,
+        sleeve: g.state === 'patrol' ? '#2a3a56' : body,
       });
       // Tanda seru saat curiga, tanda kejar saat mengejar.
       if (g.state === 'suspicious' || g.state === 'chase') {
@@ -586,12 +586,23 @@ export class Renderer {
     // tombol sentuh ("Ketuk …") yang labelnya sama dengan tombol AKSI.
     ctx.textAlign = 'center';
     const touchOn = document.documentElement.classList.contains('touch-on');
+    // Di portrait HP canvas 1280 logis ditampilkan ~390 CSS px — prompt
+    // 13 px jadi ~4 px dan tak terbaca. Skalakan font mengikuti lebar
+    // tampil canvas (desktop ~1, portrait ~3,3) agar tetap terbaca.
+    const pscale = C.CANVAS_W / Math.max(1, this.canvas.clientWidth || C.CANVAS_W);
+    // Garis tepi gelap agar prompt terbaca di atas cone/lampion yang terang.
+    const promptText = (text, x, y) => {
+      ctx.strokeStyle = 'rgba(2, 6, 23, 0.85)';
+      ctx.lineWidth = 3 * pscale;
+      ctx.strokeText(text, x, y);
+      ctx.fillText(text, x, y);
+    };
     if (game.takedownTarget) {
       const g = game.takedownTarget;
       const s = worldToScreen(g.x, g.y - 26, game.player);
       ctx.fillStyle = '#fde68a';
-      ctx.font = 'bold 13px sans-serif';
-      ctx.fillText(touchOn ? t('touch.tapTakedown') : t('canvas.takedownPrompt'), s.x, s.y);
+      ctx.font = 'bold ' + Math.round(13 * pscale) + 'px sans-serif';
+      promptText(touchOn ? t('touch.tapTakedown') : t('canvas.takedownPrompt'), s.x, s.y);
     } else if (game.nearInteract) {
       const n = game.nearInteract;
       let text = '';
@@ -601,8 +612,8 @@ export class Renderer {
       if (text) {
         const s = worldToScreen(n.x, n.y - 26, game.player);
         ctx.fillStyle = '#e2e8f0';
-        ctx.font = 'bold 13px sans-serif';
-        ctx.fillText(
+        ctx.font = 'bold ' + Math.round(13 * pscale) + 'px sans-serif';
+        promptText(
           touchOn ? t('touch.tapAction', { label: t(actionLabelKey(game)) }) : text,
           s.x, s.y,
         );
