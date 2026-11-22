@@ -147,6 +147,7 @@ class Game {
     this.cameras = buildCameras(this.level);
     this.detection = 0;
     this.peakDetection = 0;
+    this.score = 0;
     this.docsCollected = 0;
     this.timeElapsed = 0;
     this.nearMisses = 0;
@@ -237,9 +238,11 @@ class Game {
   loop(t) {
     requestAnimationFrame((nt) => this.loop(nt));
     const dt = Math.min(0.05, this.lastTime ? (t - this.lastTime) / 1000 : 0.016);
+    // FPS dari waktu nyata (bukan dt yang di-cap) agar tidak menyesatkan.
+    const realDt = this.lastTime ? (t - this.lastTime) / 1000 : 0.016;
     this.lastTime = t;
     this._fpsFrames += 1;
-    this._fpsTime += dt;
+    this._fpsTime += realDt;
     if (this._fpsTime >= 0.5) {
       this.fps = Math.round(this._fpsFrames / this._fpsTime);
       this._fpsFrames = 0;

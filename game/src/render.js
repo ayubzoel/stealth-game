@@ -138,11 +138,11 @@ export class Renderer {
     ctx.fillStyle = open ? '#06281c' : '#dbe2ec';
     ctx.font = 'bold 11px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(open ? 'KELUAR' : 'TERKUNCI', e.cx, e.cy + 4);
+    ctx.fillText(open ? 'KELUAR' : 'TERKUNCI', e.cx, e.cy - 3);
     if (!open) {
       ctx.fillStyle = '#cbd5e1';
-      ctx.font = '10px sans-serif';
-      ctx.fillText(game.docsCollected + '/' + level.documents.length + ' dokumen', e.cx, e.cy + 16);
+      ctx.font = '11px sans-serif';
+      ctx.fillText(game.docsCollected + '/' + level.documents.length + ' dokumen', e.cx, e.cy + 14);
     }
   }
 
@@ -325,13 +325,13 @@ export class Renderer {
   drawBanner(ctx, game) {
     if (!game.bannerText || game.bannerTimer <= 0) return;
     ctx.fillStyle = 'rgba(2, 6, 23, 0.75)';
-    ctx.fillRect(340, 24, 600, 40);
+    ctx.fillRect(340, 90, 600, 40);
     ctx.strokeStyle = '#f59e0b';
     ctx.lineWidth = 2;
-    ctx.strokeRect(340, 24, 600, 40);
+    ctx.strokeRect(340, 90, 600, 40);
     ctx.fillStyle = '#fde68a';
     ctx.font = 'bold 20px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(game.bannerText, 640, 51);
+    ctx.fillText(game.bannerText, 640, 117);
   }
 }
