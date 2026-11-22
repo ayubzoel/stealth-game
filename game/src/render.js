@@ -306,21 +306,94 @@ export class Renderer {
     }
   }
 
+  // Humanoid top-down (murni visual): kaki ayun, lengan, badan/bahu
+  // lonjong, kepala + topi di depan — arah hadap = `angle` (maju = +x
+  // setelah rotate). Pusat + hitbox visual tetap di tengah; anggota badan
+  // boleh sedikit keluar dari radius lingkaran lama.
+  // Fase ayunan kaki dihitung dari jarak tempuh per frame (field _w*
+  // di entitas, hanya dipakai render — logika gerak tidak disentuh).
+  _walkSwing(ent) {
+    const px = ent.x;
+    const py = ent.y;
+    if (ent._wx === undefined) {
+      ent._wx = px;
+      ent._wy = py;
+      ent._wphase = 0;
+      ent._wswing = 0;
+    }
+    const d = Math.hypot(px - ent._wx, py - ent._wy);
+    ent._wx = px;
+    ent._wy = py;
+    if (d > 0.3) ent._wphase += d * 0.11;
+    const target = d > 0.3 ? 1 : 0;
+    ent._wswing += (target - ent._wswing) * 0.08;
+    return Math.sin(ent._wphase) * 5 * ent._wswing;
+  }
+
+  _drawHumanoid(ctx, ent, opts) {
+    const swing = this._walkSwing(ent);
+    ctx.save();
+    ctx.translate(ent.x, ent.y);
+    ctx.rotate(ent.angle);
+    if (opts.scale && opts.scale !== 1) ctx.scale(opts.scale, opts.scale);
+    // Kaki: dua elips gelap, ayunan berlawanan seiring langkah.
+    ctx.fillStyle = opts.legs;
+    ctx.beginPath();
+    ctx.ellipse(swing, -5.5, 5, 3.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(-swing, 5.5, 5, 3.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Lengan di kedua sisi badan.
+    ctx.fillStyle = opts.sleeve;
+    ctx.beginPath();
+    ctx.arc(1, -10.5, 3.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(1, 10.5, 3.6, 0, Math.PI * 2);
+    ctx.fill();
+    // Badan/bahu: elips lonjong mengikuti arah hadap.
+    ctx.fillStyle = opts.body;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 11, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = opts.dark;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    // Kepala di depan badan (sedikit kulit terlihat di depan topi).
+    ctx.fillStyle = opts.skin;
+    ctx.beginPath();
+    ctx.arc(6.5, 0, 5.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Topi di kepala + pinggir depan (brim) — penanda arah hadap.
+    ctx.fillStyle = opts.hat;
+    ctx.beginPath();
+    ctx.arc(5.5, 0, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = opts.hatBrim;
+    ctx.beginPath();
+    ctx.ellipse(11.5, 0, 4.5, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
   drawGuards(ctx, game) {
     for (const g of game.guards) {
-      // Badan guard: lingkaran merah/amber + arah hadap.
-      ctx.fillStyle = g.state === 'chase' ? C.COLORS.guard : g.state === 'suspicious' ? C.COLORS.guardAmber : '#c2410c';
-      ctx.beginPath();
-      ctx.arc(g.x, g.y, C.GUARD_RADIUS, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#1f2937';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      // Topi / arah hadap.
-      ctx.fillStyle = '#fde68a';
-      ctx.beginPath();
-      ctx.arc(g.x + Math.cos(g.angle) * 7, g.y + Math.sin(g.angle) * 7, 5, 0, Math.PI * 2);
-      ctx.fill();
+      // Guard: seragam gelap navy; badan berubah sesuai state
+      // (patrol = navy, suspicious = amber, chase = merah).
+      const body =
+        g.state === 'chase' ? C.COLORS.guard
+          : g.state === 'suspicious' ? C.COLORS.guardAmber
+            : '#2b3a55';
+      this._drawHumanoid(ctx, g, {
+        body,
+        dark: '#1e293b',
+        skin: '#d9a06b',
+        hat: '#1e293b',
+        hatBrim: '#0f172a',
+        legs: '#0f172a',
+        sleeve: g.state === 'patrol' ? '#22304a' : body,
+      });
       // Tanda seru saat curiga, tanda kejar saat mengejar.
       if (g.state === 'suspicious' || g.state === 'chase') {
         ctx.fillStyle = '#fff';
@@ -332,15 +405,41 @@ export class Renderer {
   }
 
   drawCameras(ctx, game) {
+    // CCTV top-down: dudukan/tiang ke belakang, badan kotak mengarah
+    // sesuai cam.angle, lensa bulat di ujung depan. Lensa MERAH menyala
+    // saat melihat pemain, biru/cyan saat tidak. Cone + sweep tetap.
     for (const cam of game.cameras) {
+      ctx.save();
+      ctx.translate(cam.x, cam.y);
+      ctx.rotate(cam.angle);
+      // Dudukan/tiang kecil ke belakang.
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(-14, -2.5, 8, 5);
+      // Badan kotak/persegi panjang.
       ctx.fillStyle = '#334155';
       ctx.beginPath();
-      ctx.arc(cam.x, cam.y, 9, 0, Math.PI * 2);
+      ctx.roundRect(-6, -6, 16, 12, 3);
       ctx.fill();
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      // Lensa bulat di ujung depan (arah pandang).
       ctx.fillStyle = cam.seesPlayer ? '#ef4444' : '#38bdf8';
       ctx.beginPath();
-      ctx.arc(cam.x + Math.cos(cam.angle) * 6, cam.y + Math.sin(cam.angle) * 6, 4, 0, Math.PI * 2);
+      ctx.arc(11, 0, 4.5, 0, Math.PI * 2);
       ctx.fill();
+      if (cam.seesPlayer) {
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(11, 0, 6.5, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.beginPath();
+      ctx.arc(10, -1.5, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
   }
 
@@ -373,18 +472,17 @@ export class Renderer {
     ctx.fill();
     // Di semak: pemain samar (tersembunyi).
     ctx.globalAlpha = p.inBush ? 0.55 : 1;
-    ctx.fillStyle = C.COLORS.player;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = C.COLORS.playerDark;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    // Arah hadap (topi kurir).
-    ctx.fillStyle = '#f59e0b';
-    ctx.beginPath();
-    ctx.arc(p.x + Math.cos(p.angle) * 7, p.y + Math.sin(p.angle) * 7, 5, 0, Math.PI * 2);
-    ctx.fill();
+    // Raka (kurir): jaket teal + topi kurir amber.
+    this._drawHumanoid(ctx, p, {
+      body: C.COLORS.player,
+      dark: C.COLORS.playerDark,
+      skin: '#e8b98a',
+      hat: '#f59e0b',
+      hatBrim: '#d97706',
+      legs: '#134e4a',
+      sleeve: '#14b8a6',
+      scale: p.crouching ? 0.88 : 1,
+    });
     ctx.globalAlpha = 1;
     // Indikator jongkok: cincin putus-putus.
     if (p.crouching) {
