@@ -2,7 +2,9 @@
 // Mode deterministik untuk screenshot (?shot=start|play|alarm|end&seed=1).
 // Dipanggil sekali setelah game dibuat; mengatur scene yang sama setiap run.
 //
-//   start : layar judul (default).
+//   start : level 1 berjalan — adegan cover: Raka jongkok di balik peti
+//           koridor bawah, dua guard berhadapan dengan cone-nya, exit
+//           terlihat di kanan. (Dulu: layar judul — itu bug cover.)
 //   play  : level 1 berjalan, Raka di balik peti, cone guard di dekatnya.
 //   alarm : level 1, meter deteksi tinggi, cone merah (near-miss / kejar).
 //   end   : layar menang level 1.
@@ -25,7 +27,31 @@ export function applyShot(game) {
   void rand;
 
   if (shot === 'start') {
-    game.showTitle();
+    game.startLevel(0);
+    // COVER: Raka jongkok di balik peti (tile 3,13), di koridor bawah.
+    // Guard bawah kiri menghadap kanan, guard bawah tengah menghadap kiri —
+    // dua cone kuning berhadapan di koridor bawah, Raka di celahnya.
+    // Guard koridor (baris 8) tetap berpatroli normal; exit (27,11)
+    // terlihat di kanan. Beda framing dari ?shot=play (pojok kiri atas).
+    game.teleport(3 * 40 + 20, 14 * 40 + 20);
+    game.player.forceCrouch = true;
+    const g1 = game.guards[1];
+    g1.x = 4 * 40 + 20;
+    g1.y = 15 * 40 + 20;
+    g1.angle = 0; // menghadap kanan
+    g1.state = 'patrol';
+    // Waypoint 20 px ke arah hadap agar guard diam di tempat TANPA
+    // berputar (faceToward ke waypoint sendiri memutar ke sudut 0).
+    g1.waypoints = [{ x: g1.x + 20, y: g1.y }];
+    g1.wpIndex = 0;
+    const g2 = game.guards[2];
+    g2.x = 13 * 40 + 20;
+    g2.y = 15 * 40 + 20;
+    g2.angle = Math.PI; // menghadap kiri, ke arah g1
+    g2.state = 'patrol';
+    g2.waypoints = [{ x: g2.x - 20, y: g2.y }];
+    g2.wpIndex = 0;
+    game.detection = 45;
   } else if (shot === 'play') {
     game.startLevel(0);
     // Raka bersembunyi tepat di balik peti (tile 3,7), di koridor baris 8.
